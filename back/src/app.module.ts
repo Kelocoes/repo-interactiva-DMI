@@ -4,6 +4,7 @@ import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TasksModule } from './tasks/tasks.module';
+import { PointsModule } from './points/points.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { TasksModule } from './tasks/tasks.module';
       synchronize: true, // Sincroniza esquemas automáticamente
     }),
     TasksModule,
+    PointsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
