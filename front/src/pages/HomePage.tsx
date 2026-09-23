@@ -1,10 +1,10 @@
-import HomeHeader from './HomeHeader'
-import HeroSection from './HeroSection'
-import DesiredDessertsSection from './DesiredDessertsSection'
-import InteractiveMapSection from './InteractiveMapSection'
-import AcclaimedRecipesSection from './AcclaimedRecipesSection'
-import PromoBannerSection from './PromoBannerSection'
-import HomeFooter from './HomeFooter'
+import HomeHeader from '../components/home/HomeHeader'
+import HeroSection from '../components/home/HeroSection'
+import DesiredDessertsSection from '../components/home/DesiredDessertsSection'
+import InteractiveMapSection from '../components/home/InteractiveMapSection'
+import AcclaimedRecipesSection from '../components/home/AcclaimedRecipesSection'
+import PromoBannerSection from '../components/home/PromoBannerSection'
+import HomeFooter from '../components/home/HomeFooter'
 
 interface HomePageProps {
   onOpenMap: () => void

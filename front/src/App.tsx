@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import HomePage from './components/home/HomePage'
-import InteractiveMap from './components/InteractiveMap'
+import HomePage from './pages/HomePage'
+import InteractiveMapPage from './pages/InteractiveMapPage'
 
 export default function App() {
   const [currentView, setCurrentView] = useState<'home' | 'map'>('home')
@@ -37,7 +37,7 @@ export default function App() {
   }
 
   if (currentView === 'map') {
-    return <InteractiveMap onBackToHome={handleBackToHome} />
+    return <InteractiveMapPage onBackToHome={handleBackToHome} />
   }
 
   return <HomePage onOpenMap={handleOpenMap} />
