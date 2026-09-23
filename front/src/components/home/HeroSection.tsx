@@ -8,11 +8,11 @@ export default function HeroSection({ onOpenMap }: HeroSectionProps) {
       id="inicio"
       className="relative w-full overflow-hidden bg-[#fbfbfb] pt-[72px]"
     >
-      <div className="relative mx-auto flex min-h-[570px] w-full max-w-[1100px] flex-col items-center px-5">
+      <div className="relative mx-auto flex min-h-[800px] w-full max-w-[1100px] flex-col items-center px-5">
 
         {/* TÍTULO */}
-        <div className="relative z-20 mt-[26px] max-w-[650px] text-center">
-          <h1 className="text-[38px] font-normal leading-[1.08] tracking-[-1.4px] text-black md:text-[43px]">
+        <div className="relative z-20 mt-[26px] max-w-[850px] text-center">
+          <h1 className="text-4xl sm:text-5xl md:text-[58px] lg:text-[64px] font leading-[1.08] tracking-[-1.5px] text-black">
             Lo más dulce del Valle en
             <br />
             un solo{" "}
@@ -30,7 +30,7 @@ export default function HeroSection({ onOpenMap }: HeroSectionProps) {
         </div>
 
         {/* BOTONES */}
-        <div className="relative z-20 mt-[28px] flex items-center justify-center gap-[12px]">
+        <div className="relative z-20 mt-[48px] flex items-center justify-center gap-[12px]">
           <a
             href="#postres"
             className="flex h-[38px] w-[145px] items-center justify-center rounded-full border border-[#534cf4] text-[14px] font-medium text-[#534cf4] transition hover:bg-[#534cf4]/5"
@@ -71,7 +71,22 @@ export default function HeroSection({ onOpenMap }: HeroSectionProps) {
           />
 
           {/* DEGRADADO BLANCO INFERIOR */}
-          <div className="pointer-events-none absolute bottom-0 left-1/2 z-20 h-[105px] w-[800px] -translate-x-1/2 bg-gradient-to-t from-[#fbfbfb] via-[#fbfbfb]/85 to-transparent" />
+          <div
+            className="
+              pointer-events-none
+              absolute
+              left-1/2
+              top-[370px]
+              z-20
+              h-[180px]
+              w-[1000px]
+              -translate-x-1/2
+              bg-gradient-to-t
+              from-[#fbfbfb]
+              via-[#fbfbfb]/85
+              to-transparent
+            "
+          />
 
         </div>
       </div>

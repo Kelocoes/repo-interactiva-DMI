@@ -8,11 +8,11 @@ export default function HomeFooter() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 md:gap-12 relative z-10">
           
           {/* Columna 1: Contacto (200:735) */}
-          <div className="space-y-6">
-            <h3 className="text-2xl sm:text-3xl md:text-[40px] font-bold tracking-tight">
+          <div className="space-y-4">
+            <h3 className="text-lg md:text-[20px] font-bold tracking-tight">
               Contacto
             </h3>
-            <div className="space-y-2 text-base sm:text-xl md:text-[25px] font-normal text-white/90">
+            <div className="space-y-1.5 text-sm md:text-[15px] font-normal text-white/90">
               <p>Carrera 63b #17-04</p>
               <p>3002896471</p>
               <p>Boca0@gmail.com</p>
@@ -20,22 +20,22 @@ export default function HomeFooter() {
           </div>
 
           {/* Columna 2: Productos (200:736) */}
-          <div className="space-y-6">
-            <h3 className="text-2xl sm:text-3xl md:text-[40px] font-bold tracking-tight">
+          <div className="space-y-4">
+            <h3 className="text-lg md:text-[20px] font-bold tracking-tight">
               Productos
             </h3>
-            <div className="space-y-2 text-base sm:text-xl md:text-[25px] font-normal text-white/90">
+            <div className="space-y-1.5 text-sm md:text-[15px] font-normal text-white/90">
               <p className="hover:text-white transition-colors cursor-pointer">Postres</p>
               <p className="hover:text-white transition-colors cursor-pointer">Bebidas</p>
             </div>
           </div>
 
           {/* Columna 3: Recursos (200:745) */}
-          <div className="space-y-6">
-            <h3 className="text-2xl sm:text-3xl md:text-[40px] font-bold tracking-tight">
+          <div className="space-y-4">
+            <h3 className="text-lg md:text-[20px] font-bold tracking-tight">
               Recursos
             </h3>
-            <div className="space-y-2 text-base sm:text-xl md:text-[25px] font-normal text-white/90">
+            <div className="space-y-1.5 text-sm md:text-[15px] font-normal text-white/90">
               <p className="hover:text-white transition-colors cursor-pointer">Blog</p>
               <p className="hover:text-white transition-colors cursor-pointer">Newsletter</p>
               <p className="hover:text-white transition-colors cursor-pointer">Media</p>
@@ -44,11 +44,11 @@ export default function HomeFooter() {
           </div>
 
           {/* Columna 4: Legal (200:754) */}
-          <div className="space-y-6">
-            <h3 className="text-2xl sm:text-3xl md:text-[40px] font-bold tracking-tight">
+          <div className="space-y-4">
+            <h3 className="text-lg md:text-[20px] font-bold tracking-tight">
               Legal
             </h3>
-            <div className="space-y-2 text-base sm:text-xl md:text-[25px] font-normal text-white/90">
+            <div className="space-y-1.5 text-sm md:text-[15px] font-normal text-white/90">
               <p className="hover:text-white transition-colors cursor-pointer">Privacidad</p>
               <p className="hover:text-white transition-colors cursor-pointer">Seguridad</p>
               <p className="hover:text-white transition-colors cursor-pointer">Terminos de uso</p>
@@ -58,11 +58,11 @@ export default function HomeFooter() {
           </div>
 
           {/* Columna 5: Company & Redes Sociales (200:763) */}
-          <div className="space-y-6">
-            <h3 className="text-2xl sm:text-3xl md:text-[40px] font-bold tracking-tight">
+          <div className="space-y-4">
+            <h3 className="text-lg md:text-[20px] font-bold tracking-tight">
               Company
             </h3>
-            <div className="space-y-2 text-base sm:text-xl md:text-[25px] font-normal text-white/90">
+            <div className="space-y-1.5 text-sm md:text-[15px] font-normal text-white/90">
               <p className="hover:text-white transition-colors cursor-pointer">About us</p>
               <p className="hover:text-white transition-colors cursor-pointer">Career</p>
               <p className="hover:text-white transition-colors cursor-pointer">FAQs</p>

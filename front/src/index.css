@@ -8,24 +8,83 @@ html {
   scroll-behavior: smooth;
 }
 
+/* PP Neue Montreal Typography */
+@font-face {
+  font-family: 'PP Neue Montreal';
+  font-style: normal;
+  font-weight: 300;
+  src: local('PP Neue Montreal Light'), local('PP Neue Montreal'), url('https://fonts.cdnfonts.com/s/100431/ppneuemontreal-thin.woff') format('woff');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'PP Neue Montreal';
+  font-style: normal;
+  font-weight: 400;
+  src: local('PP Neue Montreal Regular'), local('PP Neue Montreal'), url('https://fonts.cdnfonts.com/s/100431/ppneuemontreal-book.woff') format('woff');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'PP Neue Montreal';
+  font-style: italic;
+  font-weight: 400;
+  src: local('PP Neue Montreal Italic'), url('https://fonts.cdnfonts.com/s/100431/ppneuemontreal-italic.woff') format('woff');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'PP Neue Montreal';
+  font-style: normal;
+  font-weight: 500;
+  src: local('PP Neue Montreal Medium'), local('PP Neue Montreal'), url('https://fonts.cdnfonts.com/s/100431/ppneuemontreal-medium.woff') format('woff');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'PP Neue Montreal';
+  font-style: normal;
+  font-weight: 600;
+  src: local('PP Neue Montreal SemiBold'), local('PP Neue Montreal'), url('https://fonts.cdnfonts.com/s/100431/ppneuemontreal-bold.woff') format('woff');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'PP Neue Montreal';
+  font-style: normal;
+  font-weight: 700;
+  src: local('PP Neue Montreal Bold'), local('PP Neue Montreal'), url('https://fonts.cdnfonts.com/s/100431/ppneuemontreal-bold.woff') format('woff');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'PP Neue Montreal';
+  font-style: normal;
+  font-weight: 800;
+  src: local('PP Neue Montreal Bold'), local('PP Neue Montreal'), url('https://fonts.cdnfonts.com/s/100431/ppneuemontreal-bold.woff') format('woff');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'PP Neue Montreal';
+  font-style: normal;
+  font-weight: 900;
+  src: local('PP Neue Montreal Bold'), local('PP Neue Montreal'), url('https://fonts.cdnfonts.com/s/100431/ppneuemontreal-bold.woff') format('woff');
+  font-display: swap;
+}
+
 body, #root {
   min-height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
-  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'PP Neue Montreal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* Fallback fonts for Figma designated families */
+/* Ensure all elements, titles, buttons, inputs inherit PP Neue Montreal */
+button, input, select, textarea {
+  font-family: inherit;
+}
+
 .font-montreal,
-[class*="font-['PP_Neue_Montreal"],
-[class*="font-['Neue_Montreal"] {
-  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
-}
-
 .font-telegraf,
+[class*="font-['PP_Neue_Montreal"],
+[class*="font-['Neue_Montreal"],
 [class*="font-['Telegraf"] {
-  font-family: 'Outfit', 'Syne', 'Plus Jakarta Sans', sans-serif !important;
+  font-family: 'PP Neue Montreal', sans-serif !important;
 }
 
 /* Custom Marker Styles */

@@ -4,23 +4,23 @@ interface InteractiveMapSectionProps {
 
 export default function InteractiveMapSection({ onOpenMap }: InteractiveMapSectionProps) {
   return (
-    <section className="w-full py-20 md:py-32 bg-[#fbfbfb] overflow-hidden">
+    <section className="w-full pt-10 pb-24 md:pt-0 md:pb-24 bg-[#fbfbfb] overflow-hidden">
       <div className="max-w-[1728px] mx-auto px-6 md:px-28">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-          
+
           {/* Columna Izquierda: Textos y Botón (Frame 10 & Frame 12) */}
-          <div className="lg:col-span-5 flex flex-col items-start max-w-[520px]">
+          <div className="lg:col-span-5 flex flex-col items-start max-w-[480px]">
             {/* Título Mapa Interactivo */}
             <div className="relative">
-              <h2 className="text-4xl sm:text-5xl md:text-[64px] font-normal text-black leading-none tracking-tight">
+              <h2 className="text-2xl sm:text-3xl md:text-[40px] font-normal text-black leading-tight tracking-tight">
                 Mapa
               </h2>
-              <span className="text-5xl sm:text-7xl md:text-[92px] font-semibold text-[#534cf4] leading-none tracking-tight block mt-1">
+              <span className="text-3xl sm:text-4xl md:text-[48px] font-bold text-[#534cf4] leading-tight tracking-tight block mt-0.5">
                 Interactivo
               </span>
-              
+
               {/* Garabato / Underline Doodle fiel a Figma (Line 4) */}
-              <div className="w-[320px] sm:w-[380px] md:w-[402px] mt-2">
+              <div className="w-[190px] sm:w-[220px] md:w-[250px] mt-1.5">
                 <img
                   src="/figma/85d1485208e4e179073f475b6b292cf476d22e72.svg"
                   alt=""
@@ -30,15 +30,14 @@ export default function InteractiveMapSection({ onOpenMap }: InteractiveMapSecti
             </div>
 
             {/* Descripción */}
-            <p className="mt-8 md:mt-12 text-lg sm:text-xl md:text-[24px] text-[#171717] font-normal leading-relaxed">
+            <p className="mt-6 md:mt-8 text-sm sm:text-base md:text-[17px] text-[#171717] font-normal leading-relaxed">
               El mapa en el cual vas a poder encontrar los lugares para disfrutar de los mejores dulces típicos de todo el Valle.
             </p>
 
             {/* Botón CTA Ver Mapa (Color Rosa/Fucsia #d500cb en Figma) */}
             <button
               onClick={onOpenMap}
-              className="mt-8 md:mt-12 w-[207px] h-[67px] rounded-[45px] bg-[#d500cb] hover:bg-[#ba00b2] text-[#fbfbfb] text-2xl md:text-[30px] font-medium flex items-center justify-center transition-all shadow-xl shadow-[#d500cb]/30 hover:scale-105 active:scale-95"
-            >
+              className="mt-6 md:mt-8 w-[140px] h-[38px] rounded-[45px] bg-[#d500cb] hover:bg-[#ba00b2] text-[#fbfbfb] text-base sm:text-lg md:text-[16px] font-medium flex items-center justify-center transition-all shadow-md shadow-[#d500cb]/15 hover:scale-105 active:scale-85">
               Ver Mapa
             </button>
           </div>
@@ -46,16 +45,16 @@ export default function InteractiveMapSection({ onOpenMap }: InteractiveMapSecti
           {/* Columna Derecha: Mosaico Visual del Mapa (Figma Cards) */}
           <div className="lg:col-span-7 relative w-full">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-[980px] ml-auto">
-              
+
               {/* Sub-columna 1 & 2 (Izquierda del mosaico) */}
               <div className="sm:col-span-2 flex flex-col gap-5">
                 {/* Fila superior: Card 1 (Mapa con Pin) y Card 2 (Foto dulce) */}
                 <div className="grid grid-cols-2 gap-5">
-                  
+
                   {/* Tarjeta Mapa 1 con marcador (195:599) */}
-                  <div 
+                  <div
                     onClick={onOpenMap}
-                    className="relative aspect-square rounded-[36px] overflow-hidden bg-[#e8e8e8] shadow-md hover:shadow-xl transition-all cursor-pointer group border border-slate-200"
+                    className="relative aspect-square rounded-[36px] overflow-hidden bg-[#e8e8e8] shadow-sm hover:shadow-[0_8px_20px_rgba(0,0,0,0.08)] transition-all cursor-pointer group border border-slate-200"
                   >
                     <div className="absolute inset-0 scale-125 transform group-hover:scale-135 transition-transform duration-700">
                       <img src="/figma/67a6bb81c4a554af3119eb32fbebffe0da284d61.svg" alt="" className="absolute inset-0 w-full h-full object-cover" />
@@ -70,7 +69,7 @@ export default function InteractiveMapSection({ onOpenMap }: InteractiveMapSecti
                   </div>
 
                   {/* Tarjeta Foto Dulce (195:601) */}
-                  <div className="relative aspect-square rounded-[36px] overflow-hidden bg-slate-100 shadow-md hover:shadow-xl transition-all border border-slate-200 group">
+                  <div className="relative aspect-square rounded-[36px] overflow-hidden bg-slate-100 shadow-sm hover:shadow-[0_8px_20px_rgba(0,0,0,0.08)] transition-all border border-slate-200 group">
                     <img
                       src="/figma/4e1306367bc471614c5de034d2b7ba22204b0f0c.png"
                       alt="Dulce tradicional"
@@ -80,7 +79,7 @@ export default function InteractiveMapSection({ onOpenMap }: InteractiveMapSecti
                 </div>
 
                 {/* Fila inferior: Card 3 Foto Ciudad/Calle ancha (195:613) */}
-                <div className="relative h-[220px] md:h-[290px] rounded-[36px] overflow-hidden bg-slate-100 shadow-md hover:shadow-xl transition-all border border-slate-200 group">
+                <div className="relative h-[220px] md:h-[290px] rounded-[36px] overflow-hidden bg-slate-100 shadow-sm hover:shadow-[0_8px_20px_rgba(0,0,0,0.08)] transition-all border border-slate-200 group">
                   <img
                     src="/figma/9c57f566b1ecfa519d0baf95252f73f2ff1165d4.png"
                     alt="Calle de Cali"
@@ -95,9 +94,9 @@ export default function InteractiveMapSection({ onOpenMap }: InteractiveMapSecti
               </div>
 
               {/* Sub-columna 3 (Derecha alta: Card 4 Mapa extendido 195:625) */}
-              <div 
+              <div
                 onClick={onOpenMap}
-                className="relative rounded-[36px] overflow-hidden bg-[#e8e8e8] shadow-md hover:shadow-xl transition-all cursor-pointer group border border-slate-200 min-h-[300px] sm:min-h-full"
+                className="relative rounded-[36px] overflow-hidden bg-[#e8e8e8] shadow-sm hover:shadow-[0_8px_20px_rgba(0,0,0,0.05)]transition-all cursor-pointer group border border-slate-200 min-h-[300px] sm:min-h-full"
               >
                 <div className="absolute inset-0 scale-125 transform group-hover:scale-135 transition-transform duration-700">
                   <img src="/figma/67a6bb81c4a554af3119eb32fbebffe0da284d61.svg" alt="" className="absolute inset-0 w-full h-full object-cover" />

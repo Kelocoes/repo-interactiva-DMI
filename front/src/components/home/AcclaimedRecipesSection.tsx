@@ -1,25 +1,25 @@
 export default function AcclaimedRecipesSection() {
   return (
-    <section id="recetas" className="w-full py-24 md:py-36 bg-[#fbfbfb] overflow-hidden">
+    <section id="recetas" className="w-full py-24 md:py-24 bg-[#fbfbfb] overflow-hidden">
       <div className="max-w-[1728px] mx-auto px-6 md:px-28">
-        
+
         {/* Cabecera de Sección (196:127 & 196:122) */}
-        <div className="flex flex-col items-start gap-1 mb-16 md:mb-24">
-          <span className="text-2xl md:text-[32px] font-normal text-black tracking-tight">
+        <div className="flex flex-col items-start gap-1 mb-16 md:mb-18">
+          <span className="text-sm sm:text-base md:text-[18px] font-normal text-black tracking-tight">
             Cultura Valluna
           </span>
-          <h2 className="text-4xl sm:text-6xl md:text-[72px] font-semibold text-[#534cf4] tracking-tight leading-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-[40px] font-semibold text-[#534cf4] tracking-tight leading-tight">
             Recetas Aclamadas
           </h2>
         </div>
 
         {/* Tarjetas de Recetas (Inclinaciones exactas de Figma: -6.17°, 0°, +6.07°) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-8 justify-items-center items-center pt-8">
-          
+
           {/* Tarjeta 1: Cholado (Amarillo #ffb200, tilt -6.17deg) */}
           <div className="w-full max-w-[466px] transition-transform duration-300 hover:rotate-0 hover:scale-105">
             <div className="lg:-rotate-[6.17deg] h-[680px] sm:h-[745px] w-full bg-[#ffb200] rounded-[50px] p-8 sm:p-12 relative overflow-hidden shadow-2xl flex flex-col justify-between">
-              
+
               {/* Vector Decorativo de Fondo */}
               <div className="absolute right-[-20%] top-[10%] w-[320px] pointer-events-none opacity-40">
                 <img src="/figma/d46cfb035c113c6c73870cf81772ed2a9d5eb0d1.svg" alt="" className="w-full h-auto" />
@@ -57,7 +57,7 @@ export default function AcclaimedRecipesSection() {
           {/* Tarjeta 2: Manjar Blanco (Magenta/Fucsia #d600c4, posición central erguida) */}
           <div className="w-full max-w-[466px] transition-transform duration-300 hover:scale-105">
             <div className="h-[680px] sm:h-[745px] w-full bg-[#d600c4] rounded-[50px] p-8 sm:p-12 relative overflow-hidden shadow-2xl flex flex-col justify-between">
-              
+
               {/* Vector Decorativo de Fondo */}
               <div className="absolute left-[-20%] top-[10%] w-[350px] pointer-events-none opacity-40">
                 <img src="/figma/b456207775f61b462f09ffc74b804aadc6bd0e73.svg" alt="" className="w-full h-auto" />
@@ -95,7 +95,7 @@ export default function AcclaimedRecipesSection() {
           {/* Tarjeta 3: Cocadas (Azul Real #534cf4, tilt +6.07deg) */}
           <div className="w-full max-w-[466px] transition-transform duration-300 hover:rotate-0 hover:scale-105">
             <div className="lg:rotate-[6.07deg] h-[680px] sm:h-[745px] w-full bg-[#534cf4] rounded-[50px] p-8 sm:p-12 relative overflow-hidden shadow-2xl flex flex-col justify-between">
-              
+
               {/* Vector Decorativo de Fondo */}
               <div className="absolute right-[-15%] top-[15%] w-[330px] pointer-events-none opacity-40">
                 <img src="/figma/a494725bcebd1622662ed47d6cdcc49ad352983e.svg" alt="" className="w-full h-auto" />

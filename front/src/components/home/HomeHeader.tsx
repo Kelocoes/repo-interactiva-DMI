@@ -21,12 +21,12 @@ export default function HomeHeader({ onNavigateToMap }: HomeHeaderProps) {
         </a>
 
         {/* Enlaces de Navegación (Desktop) */}
-        <nav className="hidden md:flex items-center gap-10 lg:gap-14 absolute left-1/2 -translate-x-1/2">
+        <nav className="hidden md:flex items-center gap-8 lg:gap-12 absolute left-1/2 -translate-x-1/2">
           {/* Inicio (Activo) */}
           <div className="relative flex flex-col items-center group cursor-pointer">
             <a
               href="#inicio"
-              className="text-[22px] lg:text-[25px] font-medium text-black hover:text-[#534cf4] transition-colors"
+              className="text-[16px] lg:text-[17px] font-medium text-black hover:text-[#534cf4] transition-colors"
             >
               Inicio
             </a>
@@ -36,21 +36,21 @@ export default function HomeHeader({ onNavigateToMap }: HomeHeaderProps) {
 
           <a
             href="#postres"
-            className="text-[22px] lg:text-[25px] font-medium text-black hover:text-[#534cf4] transition-colors"
+            className="text-[16px] lg:text-[17px] font-medium text-black hover:text-[#534cf4] transition-colors"
           >
             Nosotros
           </a>
 
           <a
             href="#contacto"
-            className="text-[22px] lg:text-[25px] font-medium text-black hover:text-[#534cf4] transition-colors"
+            className="text-[16px] lg:text-[17px] font-medium text-black hover:text-[#534cf4] transition-colors"
           >
             Contacto
           </a>
 
           <a
             href="#recetas"
-            className="text-[22px] lg:text-[25px] font-medium text-black hover:text-[#534cf4] transition-colors"
+            className="text-[16px] lg:text-[17px] font-medium text-black hover:text-[#534cf4] transition-colors"
           >
             Blog
           </a>
@@ -60,7 +60,7 @@ export default function HomeHeader({ onNavigateToMap }: HomeHeaderProps) {
         <div className="hidden md:flex items-center">
           <button
             onClick={onNavigateToMap}
-            className="px-6 py-2.5 bg-[#534cf4] hover:bg-[#433cc7] text-white text-base lg:text-lg font-semibold rounded-full shadow-sm hover:shadow-md transition-all active:scale-95"
+            className="px-5 py-2 bg-[#534cf4] hover:bg-[#433cc7] text-white text-sm lg:text-[15px] font-medium rounded-full shadow-sm hover:shadow-md transition-all active:scale-95"
           >
             Abrir Mapa
           </button>
