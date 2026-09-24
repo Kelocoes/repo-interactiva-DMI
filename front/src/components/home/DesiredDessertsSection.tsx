@@ -57,7 +57,7 @@ export default function DesiredDessertsSection() {
     <section id="postres" className="w-full py-16 md:py-48 bg-[#fbfbfb]">
       <div className="max-w-[1180px] mx-auto px-6 sm:px-10 md:px-14 lg:px-16">
         {/* Cabecera de Sección (Frame 6) */}
-        <div className="flex flex-col items-start gap-1.5 mb-10 md:mb-12 -ml-16">
+        <div className="flex flex-col items-start gap-1.5 mb-10 md:mb-15 -ml-16">
           <h2 className="text-2xl sm:text-3xl md:text-[40px] font-semibold text-[#534cf4] leading-tight tracking-tight">
             Postres más deseados
           </h2>
