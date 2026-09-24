@@ -13,19 +13,18 @@ interface InteractiveMapPageProps {
 const CALI_CENTER: [number, number] = [3.4400, -76.5300]
 const DEFAULT_ZOOM = 13
 const MIN_ZOOM = 12
-const MAX_ZOOM = 15
+const MAX_ZOOM = 16
 
-// Límites estrictos para no permitir salirse de Cali
+// Límites estrictos para no permitir salirse del perímetro urbano de Cali
 const CALI_BOUNDS: L.LatLngBoundsLiteral = [
-  [3.31, -76.60], // Suroeste (Pance / límite sur)
-  [3.52, -76.45], // Noreste (Sameco / Palmira / límite norte)
+  [3.3000, -76.6000], // Suroeste (Pance / límite sur / Farallones)
+  [3.5300, -76.4500], // Noreste (Sameco / Menga / límite norte)
 ]
 
 export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackToHome }) => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
 
-  const [currentZoom, setCurrentZoom] = useState<number>(DEFAULT_ZOOM)
   const [canZoomIn, setCanZoomIn] = useState<boolean>(true)
   const [canZoomOut, setCanZoomOut] = useState<boolean>(true)
 
@@ -42,22 +41,20 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
       maxZoom: MAX_ZOOM,
       maxBounds: bounds,
       maxBoundsViscosity: 1.0, // Impide estrictamente salirse de los límites de Cali
-      zoomControl: false,      // Usamos los controles personalizados de Figma
+      zoomControl: false,      // Usamos los controles personalizados de la interfaz
       attributionControl: false,
     })
 
-    // Capa de mosaicos libre y moderna (CartoDB Positron sin necesidad de API key)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      subdomains: 'abcd',
+    // Capa de mosaicos abierta y gratuita (OpenStreetMap sin necesidad de API key ni marcas de agua)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: MAX_ZOOM,
       minZoom: MIN_ZOOM,
-      attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map)
 
     // Escuchar cambios de zoom para actualizar los estados de los botones
     const handleZoomEnd = () => {
       const z = map.getZoom()
-      setCurrentZoom(z)
       setCanZoomIn(z < MAX_ZOOM)
       setCanZoomOut(z > MIN_ZOOM)
     }
@@ -82,14 +79,20 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
 
   // Acciones de Zoom
   const handleZoomIn = () => {
-    if (mapInstanceRef.current && currentZoom < MAX_ZOOM) {
-      mapInstanceRef.current.zoomIn(1)
+    if (mapInstanceRef.current) {
+      const z = mapInstanceRef.current.getZoom()
+      if (z < MAX_ZOOM) {
+        mapInstanceRef.current.zoomIn(1)
+      }
     }
   }
 
   const handleZoomOut = () => {
-    if (mapInstanceRef.current && currentZoom > MIN_ZOOM) {
-      mapInstanceRef.current.zoomOut(1)
+    if (mapInstanceRef.current) {
+      const z = mapInstanceRef.current.getZoom()
+      if (z > MIN_ZOOM) {
+        mapInstanceRef.current.zoomOut(1)
+      }
     }
   }
 
