@@ -1,0 +1,38 @@
+﻿╔══════════════════════════════════════════════════════════════════════╗
+║          BOCA''O — CATÁLOGO DE POSTRES (CÓDIGOS DE TERMINAL)          ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+Estos son los identificadores únicos (códigos alfanuméricos) que debes
+usar en la terminal del mapa para agregar postres a tu tienda.
+
+──────────────────────────────────────────────────────────────────────
+  INSTRUCCIÓN:
+  En la terminal, coloca máximo 3 códigos dentro del arreglo:
+
+      const misPostres = [" A2F4B1\, \C8D3E7\, \9B1F6A\];
+
+──────────────────────────────────────────────────────────────────────
+
+ # NOMBRE DEL POSTRE CÓDIGO ÚNICO
+ ─── ─────────────────────────── ───────────────
+ 1 Manjar Blanco A2F4B1
+ 2 Gelatina de Pata C8D3E7
+ 3 Aborrajado Valluno Dulce 9B1F6A
+
+──────────────────────────────────────────────────────────────────────
+
+EJEMPLO COMPLETO DE CÓDIGO PARA LA TERMINAL:
+
+ // Colores de mi tienda
+ const colorTexto = \#5552F6\;
+ const colorFondo = \#C7E8C7\;
+
+ // Mis 3 postres (máximo 3)
+ const misPostres = [\A2F4B1\, \C8D3E7\, \9B1F6A\];
+
+──────────────────────────────────────────────────────────────────────
+ - Los códigos deben ir entre comillas dobles: \A2F4B1\
+ - Separados por comas dentro de los corchetes
+ - Selecciona EXACTAMENTE 3 postres
+ - Los colores deben ser códigos hexadecimales válidos (#RRGGBB)
+──────────────────────────────────────────────────────────────────────
