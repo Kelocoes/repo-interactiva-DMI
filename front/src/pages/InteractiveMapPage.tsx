@@ -408,8 +408,8 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
   }, [])
 
   return (
-    <div className="relative w-screen h-screen bg-[#FBFBFB] overflow-hidden flex flex-col p-2 sm:p-4 md:p-6 lg:p-8 select-none font-sans">
-      <div className="relative w-full h-full rounded-[24px] sm:rounded-[32px] md:rounded-[40px] overflow-hidden shadow-2xl border border-neutral-200/80 bg-[#E8E8E8]">
+    <div className="relative w-screen h-screen overflow-hidden select-none font-sans">
+      <div className="relative w-full h-full overflow-hidden bg-[#E8E8E8]">
         {/* Leaflet Map Canvas */}
         <div ref={mapContainerRef} className="w-full h-full z-0" />
 
@@ -424,7 +424,7 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
         </div>
 
         {/* 2. Controles Flotantes de Zoom */}
-        <div className="absolute top-36 sm:top-40 md:top-48 right-4 sm:right-6 md:right-8 z-[1000] pointer-events-none flex flex-col items-center">
+        <div className="absolute top-20 sm:top-24 md:top-28 right-4 sm:right-6 md:right-8 z-[1000] pointer-events-none flex flex-col items-center">
           <MapControls
             onZoomIn={handleZoomIn}
             onZoomOut={handleZoomOut}

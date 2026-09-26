@@ -1,5 +1,6 @@
 import React from 'react'
 import type { Store } from '../../pages/InteractiveMapPage'
+import { POSTRE_CATALOG } from '../../constants/postresCatalog'
 
 interface StoreDetailProps {
   store: Store
@@ -14,26 +15,22 @@ export const StoreDetail: React.FC<StoreDetailProps> = ({
   onToggleLike,
   onClose,
 }) => {
-  const primaryColor = store.color1 || '#5552F6'
+  const textColor = store.color1 || '#5552F6'
+  const backgroundColor = store.color2 || '#FFFFFF'
 
-  // Productos por defecto según Figma (Store Detail Frame #262:149)
-  const defaultProducts = [
-    {
-      id: 'p1',
-      name: 'Manjar Blanco',
-      image: '/figma/product_manjar_blanco.png',
-    },
-    {
-      id: 'p2',
-      name: 'Gelatina de Pata',
-      image: '/figma/product_gelatina_pata.png',
-    },
-    {
-      id: 'p3',
-      name: 'Aborrajado',
-      image: '/figma/product_aborrajado.png',
-    },
-  ]
+  // Resolver postres seleccionados en la terminal para esta tienda
+  const resolvedProducts = (store.postres || [])
+    .map((code) => POSTRE_CATALOG[code])
+    .filter(Boolean)
+
+  const displayProducts =
+    resolvedProducts.length > 0
+      ? resolvedProducts
+      : [
+          POSTRE_CATALOG['A2F4B1'],
+          POSTRE_CATALOG['C8D3E7'],
+          POSTRE_CATALOG['9B1F6A'],
+        ].filter(Boolean)
 
   const handleDirections = () => {
     const url = `https://www.google.com/maps/dir/?api=1&destination=${store.lat},${store.lng}`
@@ -49,12 +46,14 @@ export const StoreDetail: React.FC<StoreDetailProps> = ({
       className="absolute inset-0 z-[2000] flex items-center justify-start p-4 sm:p-6 md:p-8 lg:p-10 bg-black/35 backdrop-blur-xs select-none"
       style={{ animation: 'fade-in 0.2s ease-out' }}
     >
-      {/* Drawer / Panel Principal (Ajustado en X e Y para no tocar los bordes del mapa) */}
+      {/* Drawer / Panel Principal con fondo y texto personalizados según la terminal */}
       <div
         id="store-detail-panel"
         onClick={stopPropagation}
-        className="relative w-full max-w-[450px] max-h-[82vh] my-auto flex flex-col bg-white rounded-[28px] sm:rounded-[36px] shadow-2xl overflow-hidden border border-neutral-100"
+        className="relative w-full max-w-[450px] max-h-[82vh] my-auto flex flex-col rounded-[28px] sm:rounded-[36px] shadow-2xl overflow-hidden border border-black/10 transition-colors duration-300"
         style={{
+          backgroundColor: backgroundColor,
+          color: textColor,
           animation: 'slide-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) both',
         }}
       >
@@ -107,7 +106,7 @@ export const StoreDetail: React.FC<StoreDetailProps> = ({
               <h1
                 className="text-2xl sm:text-3xl md:text-[30px] font-extrabold leading-tight tracking-tight"
                 style={{
-                  color: primaryColor,
+                  color: textColor,
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
                 }}
               >
@@ -121,8 +120,9 @@ export const StoreDetail: React.FC<StoreDetailProps> = ({
                 className={`p-2.5 rounded-full transition-all shrink-0 flex items-center justify-center active:scale-90 ${
                   isLiked
                     ? 'bg-rose-50 text-rose-600 border border-rose-200 shadow-sm'
-                    : 'bg-neutral-100 hover:bg-neutral-200/80 text-neutral-500'
+                    : 'bg-black/5 hover:bg-black/10'
                 }`}
+                style={{ color: textColor }}
                 title={isLiked ? 'Quitar Me Gusta' : 'Dar Me Gusta'}
                 aria-label="Dar o quitar Me Gusta"
               >
@@ -137,76 +137,84 @@ export const StoreDetail: React.FC<StoreDetailProps> = ({
             </div>
 
             {/* Dirección */}
-            <div className="flex items-center gap-2 text-neutral-800 text-base sm:text-lg font-medium">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="shrink-0 text-neutral-500">
+            <div className="flex items-center gap-2 text-base sm:text-lg font-medium" style={{ color: textColor }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="shrink-0 opacity-80">
                 <path
                   d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
                   fill="currentColor"
                 />
               </svg>
-              <span>{store.address || 'Cra 83c #16-05, El Ingenio'}</span>
+              <span className="opacity-90">{store.address || 'Cra 83c #16-05, El Ingenio'}</span>
             </div>
 
-            {/* Contador de Me Gusta (Muestra los likes exactos, 0 si es nueva tienda) */}
-            <div className="flex items-center gap-2 text-neutral-600 font-semibold text-sm">
+            {/* Contador de Me Gusta */}
+            <div className="flex items-center gap-2 font-semibold text-sm" style={{ color: textColor }}>
               <svg width="15" height="13" viewBox="0 0 12 10" fill="none">
                 <path
                   d="M6 9.5C6 9.5 0.5 5.8 0.5 2.8C0.5 1.3 1.7 0.5 3 0.5C4.2 0.5 5.3 1.2 6 2C6.7 1.2 7.8 0.5 9 0.5C10.3 0.5 11.5 1.3 11.5 2.8C11.5 5.8 6 9.5 6 9.5Z"
                   fill={isLiked ? '#FF2A5F' : '#FFD166'}
                 />
               </svg>
-              <span>{store.likes} Me Gusta</span>
+              <span className="opacity-90">{store.likes} Me Gusta</span>
             </div>
 
             {/* Descripción completa */}
-            <p className="text-neutral-700 text-xs sm:text-sm leading-relaxed font-normal">
+            <p className="text-xs sm:text-sm leading-relaxed font-normal opacity-85" style={{ color: textColor }}>
               {store.descripcion ||
                 'Un increíble lugar para tardear con tu familia, amigos, compañeros o cualquier persona que esté dispuesta a probar los postres más dulces de Cali. Un excelente ambiente con juego, recreaciones y actividades para todos los miembros de la familia.'}
             </p>
 
-            {/* Sección Productos (Figma Node #251:382) */}
+            {/* Sección Productos */}
             <div className="flex flex-col gap-3 mt-1">
               <h2
                 className="text-xl sm:text-2xl font-semibold tracking-tight"
                 style={{
-                  color: primaryColor,
+                  color: textColor,
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
                 }}
               >
                 Productos
               </h2>
 
-              {/* Lista horizontal de productos */}
+              {/* Lista de productos elegidos en la terminal */}
               <div className="grid grid-cols-3 gap-2.5">
-                {defaultProducts.map((product) => (
+                {displayProducts.map((product, idx) => (
                   <div
-                    key={product.id}
-                    className="flex flex-col items-center bg-[#F7F7F7] rounded-[14px] p-2 shadow-xs border border-neutral-200/60 hover:shadow-md transition-shadow group"
+                    key={idx}
+                    className="flex flex-col items-center rounded-[14px] p-2 shadow-xs border transition-shadow group"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.2)',
+                      borderColor: `${textColor}30`,
+                    }}
                   >
-                    <div className="w-full aspect-[4/3] rounded-[8px] overflow-hidden bg-neutral-200 mb-1.5">
+                    <div className="w-full aspect-[4/3] rounded-[8px] overflow-hidden bg-black/10 mb-1.5">
                       <img
-                        src={product.image}
-                        alt={product.name}
+                        src={product.imagen}
+                        alt={product.nombre}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
-                    <span className="text-xs font-medium text-neutral-800 text-center line-clamp-1">
-                      {product.name}
+                    <span
+                      className="text-xs font-medium text-center line-clamp-1 opacity-90"
+                      style={{ color: textColor }}
+                    >
+                      {product.nombre}
                     </span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Botón Como Llegar (Figma Node #266:240) */}
+            {/* Botón Como Llegar */}
             <div className="flex justify-center mt-2 pt-1">
               <button
                 id="store-detail-directions-btn"
                 onClick={handleDirections}
-                className="w-full sm:w-auto px-7 py-3 rounded-[18px] text-white font-medium text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all hover:opacity-90 hover:scale-[1.02] active:scale-95 shadow-md"
+                className="w-full sm:w-auto px-7 py-3 rounded-[18px] font-medium text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all hover:opacity-90 hover:scale-[1.02] active:scale-95 shadow-md"
                 style={{
-                  backgroundColor: primaryColor,
-                  boxShadow: `0px 4px 12px ${primaryColor}35`,
+                  backgroundColor: textColor,
+                  color: backgroundColor === '#FFFFFF' || backgroundColor.toLowerCase() === '#fff' ? '#FFFFFF' : backgroundColor,
+                  boxShadow: `0px 4px 12px ${textColor}35`,
                 }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -237,4 +245,3 @@ export const StoreDetail: React.FC<StoreDetailProps> = ({
 }
 
 export default StoreDetail
-

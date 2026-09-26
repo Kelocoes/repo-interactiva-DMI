@@ -1,13 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react'
+import { POSTRE_CATALOG } from '../../constants/postresCatalog'
 
-// ── Catálogo de postres ────────────────────────────────────────────────────
-// Cada postre tiene un código único alfanumérico de 6 dígitos que los
-// estudiantes deben escribir en la terminal para seleccionarlo.
-const POSTRE_CATALOG: Record<string, { nombre: string; imagen: string }> = {
-  A2F4B1: { nombre: 'Manjar Blanco',            imagen: '/assets/postres/manjarBlanco.png' },
-  C8D3E7: { nombre: 'Gelatina de Pata',          imagen: '/assets/postres/gelatinaDePata.png' },
-  '9B1F6A': { nombre: 'Aborrajado Valluno Dulce', imagen: '/assets/postres/aborrajadoVallunoDulce.png' },
-}
 
 // ── Helpers de parseo ──────────────────────────────────────────────────────
 

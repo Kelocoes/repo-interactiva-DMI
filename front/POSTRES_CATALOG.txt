@@ -1,5 +1,5 @@
-﻿╔══════════════════════════════════════════════════════════════════════╗
-║          BOCA''O — CATÁLOGO DE POSTRES (CÓDIGOS DE TERMINAL)          ║
+╔══════════════════════════════════════════════════════════════════════╗
+║          BOCA'O — CATÁLOGO DE POSTRES (CÓDIGOS DE TERMINAL)          ║
 ╚══════════════════════════════════════════════════════════════════════╝
 
 Estos son los identificadores únicos (códigos alfanuméricos) que debes
@@ -9,29 +9,46 @@ usar en la terminal del mapa para agregar postres a tu tienda.
   INSTRUCCIÓN:
   En la terminal, coloca máximo 3 códigos dentro del arreglo:
 
-      const misPostres = [" A2F4B1\, \C8D3E7\, \9B1F6A\];
+      const misPostres = ["A2F4B1", "C8D3E7", "9B1F6A"];
 
 ──────────────────────────────────────────────────────────────────────
 
- # NOMBRE DEL POSTRE CÓDIGO ÚNICO
- ─── ─────────────────────────── ───────────────
- 1 Manjar Blanco A2F4B1
- 2 Gelatina de Pata C8D3E7
- 3 Aborrajado Valluno Dulce 9B1F6A
+ #  NOMBRE DEL POSTRE                  CÓDIGO ÚNICO
+─── ────────────────────────────────── ───────────────
+ 1  Manjar Blanco                      A2F4B1
+ 2  Gelatina de Pata                   C8D3E7
+ 3  Aborrajado Valluno Dulce           9B1F6A
+ 4  Oblea de Domingo                   E4D812
+ 5  Arroz con Leche                    F3A91B
+ 6  Casado de Guayaba                  B7E204
+ 7  Champús Valluno                    D1F58E
+ 8  Cholado Caleño                     7A4E9C
+ 9  Chontaduro con Miel                E83A1F
+10  Cocaditas de Leche                 3F9D82
+11  Desamargado                        6C2B91
+12  Dulce de Cortado                   F18C34
+13  Empanadas de Cambray               2E9A4B
+14  Lulada Valluna                     4D7C1F
+15  Mazamorra con Leche                A84B92
+16  Merengón de Frutas                 1E85D0
+17  Milhoja con Arequipe               D96F28
+18  Panelitas de Leche                 5B3E8C
+19  Salpicón Valluno                   E91E63
+20  Solteritas                         8C5A2B
 
 ──────────────────────────────────────────────────────────────────────
 
 EJEMPLO COMPLETO DE CÓDIGO PARA LA TERMINAL:
 
  // Colores de mi tienda
- const colorTexto = \#5552F6\;
- const colorFondo = \#C7E8C7\;
+ const colorTexto = "#5552F6";
+ const colorFondo = "#C7E8C7";
 
  // Mis 3 postres (máximo 3)
- const misPostres = [\A2F4B1\, \C8D3E7\, \9B1F6A\];
+ const misPostres = ["A2F4B1", "E4D812", "7A4E9C"];
 
 ──────────────────────────────────────────────────────────────────────
- - Los códigos deben ir entre comillas dobles: \A2F4B1\
+ - Los códigos deben ir entre comillas dobles: "A2F4B1"
  - Separados por comas dentro de los corchetes
  - Selecciona EXACTAMENTE 3 postres
  - Los colores deben ser códigos hexadecimales válidos (#RRGGBB)
