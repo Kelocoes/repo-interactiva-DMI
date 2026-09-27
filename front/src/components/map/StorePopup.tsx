@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react'
+import { IceCreamBowl, Upload } from 'lucide-react'
 import { POSTRE_CATALOG } from '../../constants/postresCatalog'
 
 
@@ -72,6 +73,7 @@ const INITIAL_CODE = (_lat: number, _lng: number) =>
 
 const DEFAULT_COLOR1 = '#5552F6'
 const DEFAULT_COLOR2 = '#FFFFFF'
+const MAX_IMAGE_SIZE_BYTES = 3 * 1024 * 1024 // 3 MB límite máximo
 
 const StorePopup: React.FC<StorePopupProps> = ({ lat, lng, onClose, onSave }) => {
   const [form, setForm] = useState<FormState>({ nombre: '', descripcion: '' })
@@ -123,8 +125,31 @@ const StorePopup: React.FC<StorePopupProps> = ({ lat, lng, onClose, onSave }) =>
     validColor2 &&
     validPostres
 
+  // ── Cálculo del progreso general (Formulario + Terminal) ───────────────
+  const completionStats = useMemo(() => {
+    const checks = [
+      { id: 'nombre', ok: form.nombre.trim() !== '' },
+      { id: 'descripcion', ok: form.descripcion.trim() !== '' },
+      { id: 'banner', ok: !!bannerPreview },
+      { id: 'logo', ok: !!logoPreview },
+      { id: 'colorTexto', ok: validColor1 },
+      { id: 'colorFondo', ok: validColor2 },
+      { id: 'postres', ok: validPostres },
+    ]
+    const completedCount = checks.filter((c) => c.ok).length
+    const percentage = Math.round((completedCount / checks.length) * 100)
+    return { completedCount, totalCount: checks.length, percentage }
+  }, [
+    form.nombre,
+    form.descripcion,
+    bannerPreview,
+    logoPreview,
+    validColor1,
+    validColor2,
+    validPostres,
+  ])
+
   const [imageError, setImageError] = useState<string | null>(null)
-  const MAX_IMAGE_SIZE_BYTES = 3 * 1024 * 1024 // 3 MB límite máximo
 
   // ── Drag-and-drop helpers con validación de peso ───────────────────────
   const processSelectedFile = useCallback(
@@ -244,12 +269,11 @@ const StorePopup: React.FC<StorePopupProps> = ({ lat, lng, onClose, onSave }) =>
 
           <TerminalCodeEditor code={code} onChange={setCode} />
 
-          {/* Panel de estado: colores + postres válidos */}
-          <StatusBar
-            validColor1={validColor1}
-            validColor2={validColor2}
-            validPostres={validPostres}
-            postresCount={terminalPostres.filter((c) => POSTRE_CATALOG[c]).length}
+          {/* Barra de progreso de campos completados (Formulario + Terminal) */}
+          <TerminalProgressBar
+            percentage={completionStats.percentage}
+            completedCount={completionStats.completedCount}
+            totalCount={completionStats.totalCount}
           />
         </div>
 
@@ -272,9 +296,9 @@ const StorePopup: React.FC<StorePopupProps> = ({ lat, lng, onClose, onSave }) =>
             <div className="px-12 pt-9 pb-4 shrink-0">
               <div className="flex items-start justify-between mb-1">
                 <h2
-                  className="font-semibold leading-tight transition-colors duration-300"
+                  className="font-semibold leading-tight transition-colors duration-300 font-telegraf"
                   style={{
-                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                    fontFamily: "'Telegraf', 'Outfit', 'Syne', sans-serif",
                     fontSize: 32,
                     color: liveColor1,
                     opacity: 0.85,
@@ -454,10 +478,10 @@ const StorePopup: React.FC<StorePopupProps> = ({ lat, lng, onClose, onSave }) =>
                             </div>
                           </>
                         ) : (
-                          <div className="w-full h-full flex flex-col items-center justify-center gap-1">
-                            <span className="text-2xl opacity-30">🍧</span>
+                          <div className="w-full h-full flex flex-col items-center justify-center gap-1.5 select-none">
+                            <IceCreamBowl className="w-8 h-8 text-gray-400 opacity-50" strokeWidth={1.75} />
                             <span
-                              className="text-xs text-gray-400"
+                              className="text-xs text-gray-400 font-medium"
                               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                             >
                               Postre {i + 1}
@@ -544,37 +568,78 @@ const ColorSwatch: React.FC<{ label: string; color: string; valid: boolean }> = 
   </div>
 )
 
-/** Barra de estado en la parte inferior del panel de la terminal */
-const StatusBar: React.FC<{
-  validColor1: boolean
-  validColor2: boolean
-  validPostres: boolean
-  postresCount: number
-}> = ({ validColor1, validColor2, validPostres, postresCount }) => {
-  const items = [
-    { label: 'colorTexto', ok: validColor1 },
-    { label: 'colorFondo', ok: validColor2 },
-    { label: `postres (${postresCount}/3)`, ok: validPostres },
-  ]
+interface TerminalProgressBarProps {
+  percentage: number
+  completedCount: number
+  totalCount: number
+}
+
+/** Barra de progreso en la parte inferior del panel de la terminal */
+const TerminalProgressBar: React.FC<TerminalProgressBarProps> = ({
+  percentage,
+  completedCount,
+  totalCount,
+}) => {
+  const isComplete = percentage === 100
+
   return (
     <div
-      className="shrink-0 flex gap-4 px-6 py-3"
+      className="shrink-0 flex flex-col justify-center px-6 py-3 gap-1.5"
       style={{ background: '#2018E9', borderRadius: '0 0 30px 30px' }}
     >
-      {items.map(({ label, ok }) => (
-        <div key={label} className="flex items-center gap-1.5">
-          <span style={{ fontSize: 12 }}>{ok ? '✅' : '⏳'}</span>
+      <div className="flex items-center justify-between text-xs">
+        <div className="flex items-center gap-2">
           <span
             style={{
               fontFamily: "'Exo 2', monospace",
-              fontSize: 11,
-              color: ok ? '#a5f3c8' : 'rgba(255,255,255,0.45)',
+              color: '#D8D6FF',
+              fontWeight: 500,
+              fontSize: 12,
             }}
           >
-            {label}
+            Progreso general
+          </span>
+          <span
+            className="px-2 py-0.5 rounded text-[11px] font-semibold transition-colors duration-300"
+            style={{
+              background: isComplete ? 'rgba(52, 211, 153, 0.25)' : 'rgba(255, 178, 0, 0.2)',
+              color: isComplete ? '#34D399' : '#FFD166',
+              fontFamily: "'Exo 2', monospace",
+            }}
+          >
+            {percentage}%
           </span>
         </div>
-      ))}
+
+        <span
+          className="text-[11px]"
+          style={{
+            fontFamily: "'Exo 2', monospace",
+            color: isComplete ? '#34D399' : 'rgba(216, 214, 255, 0.7)',
+          }}
+        >
+          {isComplete ? '¡Todos los campos completos!' : `${completedCount} de ${totalCount} completados`}
+        </span>
+      </div>
+
+      {/* Barra de progreso visual */}
+      <div
+        className="w-full h-2 rounded-full overflow-hidden"
+        style={{ background: 'rgba(255, 255, 255, 0.15)' }}
+      >
+        <div
+          className="h-full rounded-full transition-all duration-500 ease-out"
+          style={{
+            width: `${percentage}%`,
+            background: isComplete
+              ? 'linear-gradient(90deg, #10B981 0%, #34D399 100%)'
+              : 'linear-gradient(90deg, #FFB200 0%, #D600C4 100%)',
+            boxShadow: isComplete
+              ? '0 0 8px rgba(52, 211, 153, 0.5)'
+              : '0 0 8px rgba(214, 0, 196, 0.4)',
+          }}
+        />
+      </div>
     </div>
   )
 }
@@ -622,12 +687,12 @@ const UploadBox: React.FC<UploadBoxProps> = ({
         className="absolute inset-0 w-full h-full object-cover rounded-[20px]"
       />
     ) : (
-      <div className="flex flex-col items-center gap-4 select-none">
-        <svg width="27" height="32" viewBox="0 0 27 32" fill="none">
-          <path d="M13.5 0L0 11H8.5V22H18.5V11H27L13.5 0Z" fill={accentColor} fillOpacity="0.5" />
-          <rect x="0" y="24" width="27" height="3" rx="1.5" fill={accentColor} fillOpacity="0.5" />
-          <rect x="0" y="29" width="27" height="3" rx="1.5" fill={accentColor} fillOpacity="0.5" />
-        </svg>
+      <div className="flex flex-col items-center gap-3 select-none">
+        <Upload
+          className="w-8 h-8 transition-transform duration-200"
+          style={{ color: accentColor, opacity: 0.6 }}
+          strokeWidth={2}
+        />
         <span
           className="text-center text-sm"
           style={{

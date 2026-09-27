@@ -53,17 +53,17 @@ interface MarkerEntry {
 const CALI_CENTER: [number, number] = [-76.5330, 3.4215]
 
 /** Zoom inicial enfocado en Cali */
-const DEFAULT_ZOOM = 11.4
+const DEFAULT_ZOOM = 13.0
 
 /**
- * Zoom mínimo (Zoom Out) delimitado para mantener la escala adecuada
+ * Zoom mínimo (Zoom Out) delimitado a 11.8 para ver toda Cali sin ciudades vecinas
  */
-const MIN_ZOOM = 10.2
+const MIN_ZOOM = 11.8
 
 /**
- * Zoom máximo (Zoom In) restringido exactamente a 11.8
+ * Zoom máximo (Zoom In) delimitado a 15.5 para ver calles y tiendas sin acercamiento excesivo
  */
-const MAX_ZOOM = 11.8
+const MAX_ZOOM = 15.5
 
 /**
  * Delimitación geográfica para Santiago de Cali (Bounding Box).
@@ -73,8 +73,8 @@ const MAX_ZOOM = 11.8
  * Palmira se encuentra a longitud -76.303, quedando totalmente excluida.
  */
 const CALI_BOUNDS: [[number, number], [number, number]] = [
-  [-76.6200, 3.2800],
-  [-76.4400, 3.5200],
+  [-76.7000, 3.2200],
+  [-76.3800, 3.5800],
 ]
 
 /**
@@ -288,7 +288,7 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
     if (mapInstanceRef.current) {
       mapInstanceRef.current.flyTo({
         center: [store.lng, store.lat],
-        zoom: 11.8,
+        zoom: 14.8,
         duration: 1200,
       })
     }
@@ -408,10 +408,12 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
 
     const handleZoom = () => {
       const z = map.getZoom()
-      setCanZoomIn(z < MAX_ZOOM - 0.05)
-      setCanZoomOut(z > MIN_ZOOM + 0.05)
+      setCanZoomIn(z < MAX_ZOOM - 0.08)
+      setCanZoomOut(z > MIN_ZOOM + 0.08)
     }
     map.on('zoom', handleZoom)
+    map.on('zoomend', handleZoom)
+    map.on('moveend', handleZoom)
 
     map.on('error', (e) => {
       console.warn('MapLibre event error:', e?.error || e)
@@ -491,6 +493,8 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
     return () => {
       clearTimeout(timer)
       map.off('zoom', handleZoom)
+      map.off('zoomend', handleZoom)
+      map.off('moveend', handleZoom)
       map.off('click', handleMapClick)
       markersMap.forEach(({ marker, popup }) => {
         popup.remove()
@@ -563,8 +567,15 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
   const handleZoomIn = () => {
     if (mapInstanceRef.current) {
       const z = mapInstanceRef.current.getZoom()
-      if (z < MAX_ZOOM) {
-        mapInstanceRef.current.zoomTo(Math.min(z + 0.4, MAX_ZOOM), { duration: 250 })
+      const nextZoom = Math.min(z + 0.6, MAX_ZOOM)
+      if (z < MAX_ZOOM - 0.05) {
+        mapInstanceRef.current.zoomTo(nextZoom, { duration: 250 })
+        if (nextZoom >= MAX_ZOOM - 0.08) {
+          setCanZoomIn(false)
+        }
+        setCanZoomOut(true)
+      } else {
+        setCanZoomIn(false)
       }
     }
   }
@@ -572,8 +583,15 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
   const handleZoomOut = () => {
     if (mapInstanceRef.current) {
       const z = mapInstanceRef.current.getZoom()
-      if (z > MIN_ZOOM) {
-        mapInstanceRef.current.zoomTo(Math.max(z - 0.4, MIN_ZOOM), { duration: 250 })
+      const nextZoom = Math.max(z - 0.6, MIN_ZOOM)
+      if (z > MIN_ZOOM + 0.05) {
+        mapInstanceRef.current.zoomTo(nextZoom, { duration: 250 })
+        if (nextZoom <= MIN_ZOOM + 0.08) {
+          setCanZoomOut(false)
+        }
+        setCanZoomIn(true)
+      } else {
+        setCanZoomOut(false)
       }
     }
   }
