@@ -1,0 +1,10 @@
+version: "2"
+authtoken: TU_AUTHTOKEN_AQUI
+
+tunnels:
+  backend:
+    proto: http
+    addr: 127.0.0.1:3000
+  frontend:
+    proto: http
+    addr: 127.0.0.1:5173

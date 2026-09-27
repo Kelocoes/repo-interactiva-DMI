@@ -40,3 +40,4 @@ Thumbs.db
 *.sqlite
 *.sqlite3
 *.db
+uploads/stores/

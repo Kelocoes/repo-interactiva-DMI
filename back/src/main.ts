@@ -18,6 +18,10 @@ async function bootstrap() {
   // Servir archivos estáticos subidos (/uploads/stores/...)
   app.useStaticAssets(uploadsPath, {
     prefix: '/uploads/',
+    setHeaders: (res: any) => {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    },
   });
 
   // Habilitar CORS para permitir peticiones desde Vite u otros clientes
@@ -41,7 +45,7 @@ async function bootstrap() {
   );
 
   const port = process.env.PORT ?? 3000;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   console.log(`🚀 Servidor backend NestJS corriendo en http://localhost:${port}`);
   console.log(`📂 Archivos estáticos servidos en http://localhost:${port}/uploads/`);
 }

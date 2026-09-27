@@ -4,7 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { StoresModule } from './stores/stores.module';
 
-const isPostgres = process.env.DB_TYPE === 'postgres' || !process.env.DB_TYPE;
+const isPostgres = process.env.DB_TYPE === 'postgres';
 
 @Module({
   imports: [
@@ -26,7 +26,7 @@ const isPostgres = process.env.DB_TYPE === 'postgres' || !process.env.DB_TYPE;
             },
           }
         : {
-            type: 'better-sqlite3',
+            type: 'sqlite',
             database: 'database.sqlite',
             autoLoadEntities: true,
             synchronize: true,

@@ -25,7 +25,7 @@ export interface Store {
 
 const STORAGE_KEY = 'bocao_stores_v3';
 const LIKED_KEY = 'bocao_liked_store_ids_v3';
-export const API_BASE_URL = 'http://localhost:3000';
+export const API_BASE_URL = (import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000').replace(/\/$/, '');
 
 /**
  * Tiendas iniciales del mock fieles a Figma (Frame 173-130).
@@ -66,12 +66,13 @@ export const INITIAL_STORES: Store[] = [
 ];
 
 /**
- * Convierte URLs relativas de subidas (/uploads/...) a URLs absolutas del backend
+ * Convierte URLs de subidas a rutas relativas (/uploads/...) para que se sirvan
+ * a través del proxy de Vite en el mismo origen, eliminando bloqueos ORB de Chrome
  */
 export function resolveImageUrl(url: string | null | undefined): string | null {
   if (!url) return null;
-  if (url.startsWith('/uploads')) {
-    return `${API_BASE_URL}${url}`;
+  if (url.includes('/uploads/')) {
+    return url.substring(url.indexOf('/uploads/'));
   }
   return url;
 }
@@ -88,7 +89,11 @@ export function getStoredStores(): Store[] {
     }
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed;
+      return parsed.map((s) => ({
+        ...s,
+        bannerPreview: resolveImageUrl(s.bannerPreview),
+        logoPreview: resolveImageUrl(s.logoPreview),
+      }));
     }
     return INITIAL_STORES;
   } catch (err) {
@@ -114,7 +119,12 @@ export function saveStoresToStorage(stores: Store[]): void {
 export async function fetchStoresApi(search?: string): Promise<Store[]> {
   try {
     const url = search ? `${API_BASE_URL}/stores?search=${encodeURIComponent(search)}` : `${API_BASE_URL}/stores`;
-    const res = await fetch(url, { headers: { Accept: 'application/json' } });
+    const res = await fetch(url, {
+      headers: {
+        Accept: 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+      },
+    });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data: Store[] = await res.json();
     if (Array.isArray(data) && data.length > 0) {
@@ -150,6 +160,7 @@ export async function createStoreApi(newStore: Partial<Store>): Promise<Store> {
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
+        'ngrok-skip-browser-warning': 'true',
       },
       body: JSON.stringify(newStore),
     });
@@ -217,7 +228,10 @@ export async function toggleLikeStoreApi(
   try {
     const res = await fetch(`${API_BASE_URL}/stores/${storeId}/like`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+      },
       body: JSON.stringify({ action: nextIsLiked ? 'like' : 'unlike' }),
     });
 
@@ -280,6 +294,9 @@ export function subscribeToRealtimeStores(
     const socket: Socket = io(API_BASE_URL, {
       reconnectionAttempts: 5,
       reconnectionDelay: 2000,
+      extraHeaders: {
+        'ngrok-skip-browser-warning': 'true',
+      },
     });
 
     socket.on('store:created', (store: Store) => {
