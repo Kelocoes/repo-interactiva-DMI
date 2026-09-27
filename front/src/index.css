@@ -1,4 +1,5 @@
 @import 'leaflet/dist/leaflet.css';
+@import 'maplibre-gl/dist/maplibre-gl.css';
 
 @tailwind base;
 @tailwind components;
@@ -160,6 +161,24 @@ body, #root {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
+}
+
+/* ── MapLibre GL Store Card Tooltip ──────────────────────────────────────── */
+.maplibregl-popup.store-card-tooltip {
+  pointer-events: none;
+  z-index: 1000 !important;
+}
+
+.maplibregl-popup.store-card-tooltip .maplibregl-popup-content {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 14px !important;
+}
+
+.maplibregl-popup.store-card-tooltip .maplibregl-popup-tip {
+  display: none !important;
 }
 
 /* ── Scrollbar personalizado para los paneles del Popup ──────────────────── */

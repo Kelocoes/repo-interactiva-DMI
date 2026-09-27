@@ -1,5 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import L from 'leaflet'
+import * as maplibregl from 'maplibre-gl'
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
+
+// Configurar explícitamente el worker de MapLibre en Vite para evitar error de carga
+if (typeof maplibregl.setWorkerUrl === 'function') {
+  maplibregl.setWorkerUrl(workerUrl)
+}
 import MapHeaderBadge from '../components/map/MapHeaderBadge'
 import MapSearchBar from '../components/map/MapSearchBar'
 import MapControls from '../components/map/MapControls'
@@ -35,30 +41,86 @@ interface MapClickLocation {
   lng: number
 }
 
-// ── Constantes del mapa ─────────────────────────────────────────────────────
+interface MarkerEntry {
+  marker: maplibregl.Marker
+  popup: maplibregl.Popup
+  element: HTMLElement
+}
 
-const CALI_CENTER: [number, number] = [3.4000, -76.5380]
-const DEFAULT_ZOOM = 13
-const MIN_ZOOM = 12
-const MAX_ZOOM = 16
+// ── Constantes del mapa (Delimitado estrictamente a Cali) ───────────────────────
 
-const CALI_BOUNDS: L.LatLngBoundsLiteral = [
-  [3.3000, -76.6000],
-  [3.5300, -76.4500],
+/** Centro geográfico de Cali [longitud, latitud] */
+const CALI_CENTER: [number, number] = [-76.5330, 3.4215]
+
+/** Zoom inicial enfocado en Cali */
+const DEFAULT_ZOOM = 11.4
+
+/**
+ * Zoom mínimo (Zoom Out) delimitado para mantener la escala adecuada
+ */
+const MIN_ZOOM = 10.2
+
+/**
+ * Zoom máximo (Zoom In) restringido exactamente a 11.8
+ */
+const MAX_ZOOM = 11.8
+
+/**
+ * Delimitación geográfica para Santiago de Cali (Bounding Box).
+ * Formato MapLibre: [[minLng, minLat], [maxLng, maxLat]] (Suroeste y Noreste)
+ * - Suroeste: Farallones / Pance [-76.6200, 3.2800]
+ * - Noreste: Menga / Límite Río Cauca [-76.4400, 3.5200]
+ * Palmira se encuentra a longitud -76.303, quedando totalmente excluida.
+ */
+const CALI_BOUNDS: [[number, number], [number, number]] = [
+  [-76.6200, 3.2800],
+  [-76.4400, 3.5200],
 ]
 
-// ── Colores predeterminados ───
+/**
+ * Estilo OSM Liberty GL (basado en OpenMapTiles / MapLibre)
+ * Referencia: https://github.com/openmaptiles/osm-liberty-gl-style
+ * Servido en vector tiles globales libres vía OpenFreeMap
+ */
+const OSM_LIBERTY_STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty'
+
+/**
+ * Configuración de colores personalizables del estilo:
+ * ¡SÍ es totalmente posible cambiar o modificar los colores predeterminados!
+ * El estilo de OSM Liberty se compone de capas vectoriales JSON estándar
+ * cuyas propiedades de color se pueden ajustar dinámicamente en tiempo de ejecución
+ * o editando el style.json.
+ */
+const CUSTOM_MAP_COLORS = {
+  // Color del agua (ríos, canales). Default OSM Liberty: rgb(158,189,255)
+  water: '#9ebdff',
+  // Color de parques y zonas verdes. Default: #d8e8c8
+  park: '#d8e8c8',
+  // Color del fondo/terreno base. Default: #f8f4f0
+  background: '#f8f4f0',
+  // Color de los polígonos de edificios. Default: hsl(35,8%,85%)
+  building: '#e5e0d8',
+  // Color de autopistas principales. Default: #ffdaa6
+  motorway: '#ffdaa6',
+}
+
+// ── Colores predeterminados de tiendas ───
 const DEFAULT_COLOR1 = '#5552F6'
 const DEFAULT_COLOR2 = '#D600C4'
 
 // ── Helpers de marker ────────────────────────────────────────────────────────
 
 /**
- * Genera el HTML del ícono SVG del pin fiel a Figma (#519:169 - Markers / Pinlet Marker with Dot).
+ * Genera el elemento DOM del ícono SVG del pin fiel a Figma (#519:169 - Markers / Pinlet Marker with Dot).
  * El color del pin corresponde al color de fondo que tiene el detalle de la tienda (store.color2).
  */
-function createPinIcon(pinColor: string): L.DivIcon {
-  const svg = `
+function createPinElement(pinColor: string): HTMLDivElement {
+  const container = document.createElement('div')
+  container.className = 'custom-store-pin cursor-pointer transform hover:scale-110 transition-transform duration-200'
+  container.style.width = '38px'
+  container.style.height = '51px'
+
+  container.innerHTML = `
     <svg width="38" height="51" viewBox="0 0 102 136" fill="none" xmlns="http://www.w3.org/2000/svg">
       <!-- Sombra inferior en el suelo -->
       <ellipse cx="51" cy="123.25" rx="17" ry="8.5" fill="black" fill-opacity="0.18"/>
@@ -75,13 +137,7 @@ function createPinIcon(pinColor: string): L.DivIcon {
     </svg>
   `.trim()
 
-  return L.divIcon({
-    className: 'custom-store-pin cursor-pointer transform hover:scale-110 transition-transform duration-200',
-    html: svg,
-    iconSize: [38, 51],
-    iconAnchor: [19, 45],
-    tooltipAnchor: [0, -45],
-  })
+  return container
 }
 
 /**
@@ -172,8 +228,9 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
 
 export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackToHome }) => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
-  const mapInstanceRef = useRef<L.Map | null>(null)
-  const leafletMarkersRef = useRef<Map<string, L.Marker>>(new Map())
+  const mapInstanceRef = useRef<maplibregl.Map | null>(null)
+  const markersRef = useRef<Map<string, MarkerEntry>>(new Map())
+  const isClickingMarkerRef = useRef<boolean>(false)
 
   // Lista de tiendas cargadas desde el servicio de almacenamiento
   const [stores, setStores] = useState<Store[]>(() => getStoredStores())
@@ -214,9 +271,9 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
         setStores((prev) =>
           prev.map((s) => (s.id === storeId ? result.updatedStore! : s))
         )
-        const marker = leafletMarkersRef.current.get(storeId)
-        if (marker) {
-          marker.setTooltipContent(createTooltipHTML(result.updatedStore))
+        const entry = markersRef.current.get(storeId)
+        if (entry) {
+          entry.popup.setHTML(createTooltipHTML(result.updatedStore))
         }
         if (selectedStore?.id === storeId) {
           setSelectedStore(result.updatedStore)
@@ -229,38 +286,55 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
   // Handler para seleccionar una tienda desde cualquier card (centra el mapa y abre el detalle)
   const handleSelectStore = useCallback((store: Store) => {
     if (mapInstanceRef.current) {
-      mapInstanceRef.current.flyTo([store.lat, store.lng], 15, { duration: 1.2 })
+      mapInstanceRef.current.flyTo({
+        center: [store.lng, store.lat],
+        zoom: 11.8,
+        duration: 1200,
+      })
     }
     setSelectedStore(store)
     setIsStoreListOpen(false)
   }, [])
 
-  // Función para agregar marker de una tienda al mapa
-  const addStoreMarkerToMap = useCallback((store: Store, map: L.Map) => {
-    // Si ya existe el marker, no duplicarlo
-    if (leafletMarkersRef.current.has(store.id)) return
+  // Función para agregar marker de una tienda al mapa de MapLibre
+  const addStoreMarkerToMap = useCallback((store: Store, map: maplibregl.Map) => {
+    if (markersRef.current.has(store.id)) return
 
-    // El color del pin corresponde al fondo del detalle de la tienda (store.color2)
-    const icon = createPinIcon(store.color2 || DEFAULT_COLOR2)
-    const marker = L.marker([store.lat, store.lng], { icon })
+    const el = createPinElement(store.color2 || DEFAULT_COLOR2)
 
-    marker.bindTooltip(createTooltipHTML(store), {
-      permanent: false,
-      direction: 'top',
+    const popup = new maplibregl.Popup({
+      closeButton: false,
+      closeOnClick: false,
+      offset: [0, -48],
       className: 'store-card-tooltip',
-      offset: [0, -6],
-      opacity: 1,
+      maxWidth: 'none',
+    })
+    popup.setHTML(createTooltipHTML(store))
+
+    el.addEventListener('mouseenter', () => {
+      popup.setLngLat([store.lng, store.lat]).addTo(map)
     })
 
-    // Al hacer click en el marker se abre StoreDetail (deteniendo propagación al mapa)
-    marker.on('click', (e) => {
-      L.DomEvent.stopPropagation(e)
+    el.addEventListener('mouseleave', () => {
+      popup.remove()
+    })
+
+    // Al hacer click en el marker se abre StoreDetail
+    el.addEventListener('click', (e) => {
+      e.stopPropagation()
+      isClickingMarkerRef.current = true
       setSelectedStore(store)
       setIsStoreListOpen(false)
+      setTimeout(() => {
+        isClickingMarkerRef.current = false
+      }, 120)
     })
 
-    marker.addTo(map)
-    leafletMarkersRef.current.set(store.id, marker)
+    const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+      .setLngLat([store.lng, store.lat])
+      .addTo(map)
+
+    markersRef.current.set(store.id, { marker, popup, element: el })
   }, [])
 
   // Cargar tiendas desde el backend de PostgreSQL y escuchar eventos WebSockets en tiempo real
@@ -286,12 +360,12 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
         setStores((prev) =>
           prev.map((s) => (s.id === id ? { ...s, likes } : s))
         )
-        const marker = leafletMarkersRef.current.get(id)
-        if (marker) {
+        const entry = markersRef.current.get(id)
+        if (entry) {
           setStores((prev) => {
             const store = prev.find((s) => s.id === id)
             if (store) {
-              marker.setTooltipContent(createTooltipHTML({ ...store, likes }))
+              entry.popup.setHTML(createTooltipHTML({ ...store, likes }))
             }
             return prev
           })
@@ -299,7 +373,7 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
         setSelectedStore((currentSelected) => {
           if (currentSelected?.id === id) {
             const updated = { ...currentSelected, likes }
-            if (marker) marker.setTooltipContent(createTooltipHTML(updated))
+            if (entry) entry.popup.setHTML(createTooltipHTML(updated))
             return updated
           }
           return currentSelected
@@ -313,58 +387,118 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
     }
   }, [addStoreMarkerToMap])
 
-  // Inicialización del Mapa de Leaflet (solo al montar)
+  // Inicialización del Mapa de MapLibre GL con estilo OSM Liberty (solo al montar)
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return
 
-    const bounds = L.latLngBounds(CALI_BOUNDS[0], CALI_BOUNDS[1])
-
-    const map = L.map(mapContainerRef.current, {
+    const map = new maplibregl.Map({
+      container: mapContainerRef.current,
+      style: OSM_LIBERTY_STYLE_URL,
       center: CALI_CENTER,
       zoom: DEFAULT_ZOOM,
       minZoom: MIN_ZOOM,
       maxZoom: MAX_ZOOM,
-      maxBounds: bounds,
-      maxBoundsViscosity: 1.0,
-      zoomControl: false,
+      maxBounds: CALI_BOUNDS,
       attributionControl: false,
+      dragRotate: false,
+      pitchWithRotate: false,
+      touchPitch: false,
       doubleClickZoom: false,
     })
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: MAX_ZOOM,
-      minZoom: MIN_ZOOM,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    }).addTo(map)
-
-    const handleZoomEnd = () => {
+    const handleZoom = () => {
       const z = map.getZoom()
-      setCanZoomIn(z < MAX_ZOOM)
-      setCanZoomOut(z > MIN_ZOOM)
+      setCanZoomIn(z < MAX_ZOOM - 0.05)
+      setCanZoomOut(z > MIN_ZOOM + 0.05)
     }
-    map.on('zoomend', handleZoomEnd)
-    handleZoomEnd()
+    map.on('zoom', handleZoom)
 
-    // Abrir el popup de crear tienda al hacer click en cualquier lugar del mapa
-    // para captar exactamente las coordenadas que el usuario seleccionó
-    const handleMapClick = (e: L.LeafletMouseEvent) => {
+    map.on('error', (e) => {
+      console.warn('MapLibre event error:', e?.error || e)
+    })
+
+    // Filtros de estilo y personalización de capas al cargar el estilo
+    map.on('load', () => {
+      handleZoom()
+
+      try {
+        // 1. Filtrar etiquetas para garantizar que Palmira y municipios vecinos no se muestren
+        const neighboringCities = [
+          'Palmira',
+          'Yumbo',
+          'Jamundí',
+          'Jamundi',
+          'Candelaria',
+          'Pradera',
+          'Florida',
+          'Rozo',
+        ]
+
+        const labelLayers = ['label_city', 'label_town', 'label_village']
+        labelLayers.forEach((layerId) => {
+          if (map.getLayer(layerId)) {
+            const currentFilter = map.getFilter(layerId)
+            const exclusions = neighboringCities.flatMap((cityName) => [
+              ['!=', ['get', 'name'], cityName],
+              ['!=', ['get', 'name:latin'], cityName],
+              ['!=', ['get', 'name_en'], cityName],
+            ])
+
+            const combinedFilter = currentFilter
+              ? ['all', currentFilter, ...exclusions]
+              : ['all', ...exclusions]
+
+            map.setFilter(layerId, combinedFilter as any)
+          }
+        })
+
+        // 2. Personalización de colores predeterminados del estilo OSM Liberty
+        if (CUSTOM_MAP_COLORS.water && map.getLayer('water')) {
+          map.setPaintProperty('water', 'fill-color', CUSTOM_MAP_COLORS.water)
+        }
+        if (CUSTOM_MAP_COLORS.park && map.getLayer('park')) {
+          map.setPaintProperty('park', 'fill-color', CUSTOM_MAP_COLORS.park)
+        }
+        if (CUSTOM_MAP_COLORS.background && map.getLayer('background')) {
+          map.setPaintProperty('background', 'background-color', CUSTOM_MAP_COLORS.background)
+        }
+        if (CUSTOM_MAP_COLORS.building && map.getLayer('building')) {
+          map.setPaintProperty('building', 'fill-color', CUSTOM_MAP_COLORS.building)
+        }
+        if (CUSTOM_MAP_COLORS.motorway && map.getLayer('road_motorway')) {
+          map.setPaintProperty('road_motorway', 'line-color', CUSTOM_MAP_COLORS.motorway)
+        }
+      } catch (err) {
+        console.warn('Error applying style customizations:', err)
+      }
+    })
+
+    // Abrir el popup de crear tienda al hacer click en cualquier lugar libre del mapa
+    const handleMapClick = (e: maplibregl.MapMouseEvent) => {
+      if (isClickingMarkerRef.current) return
       setIsStoreListOpen(false)
       setSelectedStore(null)
-      setPopupLocation({ lat: e.latlng.lat, lng: e.latlng.lng })
+      setPopupLocation({ lat: e.lngLat.lat, lng: e.lngLat.lng })
     }
     map.on('click', handleMapClick)
 
     mapInstanceRef.current = map
 
-    const timer = setTimeout(() => map.invalidateSize(), 200)
+    const timer = setTimeout(() => map.resize(), 200)
+
+    const markersMap = markersRef.current
 
     return () => {
       clearTimeout(timer)
-      map.off('zoomend', handleZoomEnd)
+      map.off('zoom', handleZoom)
       map.off('click', handleMapClick)
+      markersMap.forEach(({ marker, popup }) => {
+        popup.remove()
+        marker.remove()
+      })
+      markersMap.clear()
       map.remove()
       mapInstanceRef.current = null
-      leafletMarkersRef.current.clear()
     }
   }, [])
 
@@ -374,13 +508,11 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
     const map = mapInstanceRef.current
 
     stores.forEach((store) => {
-      if (!leafletMarkersRef.current.has(store.id)) {
+      const entry = markersRef.current.get(store.id)
+      if (!entry) {
         addStoreMarkerToMap(store, map)
       } else {
-        const marker = leafletMarkersRef.current.get(store.id)
-        if (marker) {
-          marker.setTooltipContent(createTooltipHTML(store))
-        }
+        entry.popup.setHTML(createTooltipHTML(store))
       }
     })
   }, [stores, addStoreMarkerToMap])
@@ -426,19 +558,23 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
     [addStoreMarkerToMap]
   )
 
-  // ── Handlers del mapa ────────────────────────────────────────────────────
+  // ── Handlers de zoom ────────────────────────────────────────────────────
 
   const handleZoomIn = () => {
     if (mapInstanceRef.current) {
       const z = mapInstanceRef.current.getZoom()
-      if (z < MAX_ZOOM) mapInstanceRef.current.zoomIn(1)
+      if (z < MAX_ZOOM) {
+        mapInstanceRef.current.zoomTo(Math.min(z + 0.4, MAX_ZOOM), { duration: 250 })
+      }
     }
   }
 
   const handleZoomOut = () => {
     if (mapInstanceRef.current) {
       const z = mapInstanceRef.current.getZoom()
-      if (z > MIN_ZOOM) mapInstanceRef.current.zoomOut(1)
+      if (z > MIN_ZOOM) {
+        mapInstanceRef.current.zoomTo(Math.max(z - 0.4, MIN_ZOOM), { duration: 250 })
+      }
     }
   }
 
@@ -453,7 +589,7 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
   return (
     <div className="relative w-screen h-screen overflow-hidden select-none font-sans">
       <div className="relative w-full h-full overflow-hidden bg-[#E8E8E8]">
-        {/* Leaflet Map Canvas */}
+        {/* MapLibre Map Canvas con OSM Liberty GL Style */}
         <div ref={mapContainerRef} className="w-full h-full z-0" />
 
         {/* 1. Header Superior */}
@@ -528,7 +664,7 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
           />
         )}
 
-        {/* 5. Pop Up "¡Crea tu tienda!" — aparece al hacer doble click o click en registrar */}
+        {/* 5. Pop Up "¡Crea tu tienda!" — aparece al hacer click en el mapa */}
         {popupLocation && (
           <StorePopup
             lat={popupLocation.lat}
