@@ -123,18 +123,41 @@ const StorePopup: React.FC<StorePopupProps> = ({ lat, lng, onClose, onSave }) =>
     validColor2 &&
     validPostres
 
-  // ── Drag-and-drop helpers ──────────────────────────────────────────────
+  const [imageError, setImageError] = useState<string | null>(null)
+  const MAX_IMAGE_SIZE_BYTES = 3 * 1024 * 1024 // 3 MB límite máximo
+
+  // ── Drag-and-drop helpers con validación de peso ───────────────────────
+  const processSelectedFile = useCallback(
+    (file: File, type: 'banner' | 'logo') => {
+      if (file.size > MAX_IMAGE_SIZE_BYTES) {
+        const sizeMb = (file.size / (1024 * 1024)).toFixed(1)
+        setImageError(
+          `El archivo "${file.name}" supera el límite de 3 MB (pesa ${sizeMb} MB). Por favor selecciona una imagen más liviana.`
+        )
+        return
+      }
+
+      setImageError(null)
+      const reader = new FileReader()
+      reader.onload = () => {
+        const result = reader.result as string
+        if (type === 'banner') setBannerPreview(result)
+        else setLogoPreview(result)
+      }
+      reader.readAsDataURL(file)
+    },
+    []
+  )
+
   const handleFileDrop = useCallback(
     (type: 'banner' | 'logo') =>
       (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault()
         const file = e.dataTransfer.files[0]
         if (!file) return
-        const url = URL.createObjectURL(file)
-        if (type === 'banner') setBannerPreview(url)
-        else setLogoPreview(url)
+        processSelectedFile(file, type)
       },
-    []
+    [processSelectedFile]
   )
 
   const handleFileInput = useCallback(
@@ -142,11 +165,9 @@ const StorePopup: React.FC<StorePopupProps> = ({ lat, lng, onClose, onSave }) =>
       (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (!file) return
-        const url = URL.createObjectURL(file)
-        if (type === 'banner') setBannerPreview(url)
-        else setLogoPreview(url)
+        processSelectedFile(file, type)
       },
-    []
+    [processSelectedFile]
   )
 
   const handleGuardar = () => {
@@ -284,6 +305,25 @@ const StorePopup: React.FC<StorePopupProps> = ({ lat, lng, onClose, onSave }) =>
 
             {/* ── Cuerpo del formulario ────────────────────────────── */}
             <div className="flex-1 px-12 pb-8 flex flex-col gap-5">
+              {/* Alerta de archivo demasiado pesado */}
+              {imageError && (
+                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm animate-in fade-in duration-200 shadow-xs">
+                  <svg className="w-5 h-5 shrink-0 text-rose-500 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  <span className="flex-1 font-medium leading-snug">{imageError}</span>
+                  <button
+                    type="button"
+                    onClick={() => setImageError(null)}
+                    className="text-rose-400 hover:text-rose-700 p-0.5 font-bold cursor-pointer"
+                    title="Cerrar aviso"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
 
               {/* Fila Banner + Logo */}
               <div className="flex gap-4">

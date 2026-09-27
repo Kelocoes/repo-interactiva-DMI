@@ -12,10 +12,12 @@ import logoResponsive from '../assets/interactive-map/logo_responsive.svg'
 import {
   type Store,
   getStoredStores,
-  addStore,
-  toggleLikeStore,
+  fetchStoresApi,
+  createStoreApi,
+  toggleLikeStoreApi,
   sortStoresByLikes,
   getLikedStoreIds,
+  subscribeToRealtimeStores,
 } from '../services/storeService'
 
 // Re-exportar interfaz Store para compatibilidad
@@ -201,24 +203,28 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
   // Indicador si hay un pop up lateral de alguna card flotante activo (lista de tiendas o detalle de tienda)
   const hasLateralPopup = Boolean(isStoreListOpen || selectedStore)
 
-  // Handler para dar o quitar Like a una tienda (+1 o -1)
-  const handleToggleLike = useCallback((storeId: string) => {
-    const result = toggleLikeStore(storeId)
-    setStores(result.stores)
-    setLikedStoreIds(getLikedStoreIds())
+  // Handler para dar o quitar Like a una tienda (+1 o -1) atómicamente en PostgreSQL
+  const handleToggleLike = useCallback(
+    async (storeId: string) => {
+      const isCurrentlyLiked = likedStoreIds.has(storeId)
+      const result = await toggleLikeStoreApi(storeId, isCurrentlyLiked)
+      setLikedStoreIds(getLikedStoreIds())
 
-    if (result.updatedStore) {
-      // Actualizar tooltip en el mapa de Leaflet
-      const marker = leafletMarkersRef.current.get(storeId)
-      if (marker) {
-        marker.setTooltipContent(createTooltipHTML(result.updatedStore))
+      if (result.updatedStore) {
+        setStores((prev) =>
+          prev.map((s) => (s.id === storeId ? result.updatedStore! : s))
+        )
+        const marker = leafletMarkersRef.current.get(storeId)
+        if (marker) {
+          marker.setTooltipContent(createTooltipHTML(result.updatedStore))
+        }
+        if (selectedStore?.id === storeId) {
+          setSelectedStore(result.updatedStore)
+        }
       }
-
-      if (selectedStore?.id === storeId) {
-        setSelectedStore(result.updatedStore)
-      }
-    }
-  }, [selectedStore])
+    },
+    [likedStoreIds, selectedStore]
+  )
 
   // Handler para seleccionar una tienda desde cualquier card (centra el mapa y abre el detalle)
   const handleSelectStore = useCallback((store: Store) => {
@@ -257,7 +263,57 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
     leafletMarkersRef.current.set(store.id, marker)
   }, [])
 
-  // Inicialización del Mapa de Leaflet
+  // Cargar tiendas desde el backend de PostgreSQL y escuchar eventos WebSockets en tiempo real
+  useEffect(() => {
+    let isMounted = true
+    fetchStoresApi().then((apiStores) => {
+      if (isMounted) {
+        setStores(apiStores)
+      }
+    })
+
+    const unsubscribe = subscribeToRealtimeStores(
+      (createdStore) => {
+        setStores((prev) => {
+          if (prev.some((s) => s.id === createdStore.id)) return prev
+          return [createdStore, ...prev]
+        })
+        if (mapInstanceRef.current) {
+          addStoreMarkerToMap(createdStore, mapInstanceRef.current)
+        }
+      },
+      ({ id, likes }) => {
+        setStores((prev) =>
+          prev.map((s) => (s.id === id ? { ...s, likes } : s))
+        )
+        const marker = leafletMarkersRef.current.get(id)
+        if (marker) {
+          setStores((prev) => {
+            const store = prev.find((s) => s.id === id)
+            if (store) {
+              marker.setTooltipContent(createTooltipHTML({ ...store, likes }))
+            }
+            return prev
+          })
+        }
+        setSelectedStore((currentSelected) => {
+          if (currentSelected?.id === id) {
+            const updated = { ...currentSelected, likes }
+            if (marker) marker.setTooltipContent(createTooltipHTML(updated))
+            return updated
+          }
+          return currentSelected
+        })
+      }
+    )
+
+    return () => {
+      isMounted = false
+      unsubscribe()
+    }
+  }, [addStoreMarkerToMap])
+
+  // Inicialización del Mapa de Leaflet (solo al montar)
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return
 
@@ -300,11 +356,6 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
 
     mapInstanceRef.current = map
 
-    // Cargar tiendas iniciales en el mapa
-    stores.forEach((store) => {
-      addStoreMarkerToMap(store, map)
-    })
-
     const timer = setTimeout(() => map.invalidateSize(), 200)
 
     return () => {
@@ -315,47 +366,65 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
       mapInstanceRef.current = null
       leafletMarkersRef.current.clear()
     }
-  }, [addStoreMarkerToMap, stores])
+  }, [])
 
-  // ── Guardar tienda: geocodifica, crea marker y lo añade al mapa y a la base local ────────────
-
-  const handleSaveStore = useCallback(async (formData: StoreFormData) => {
-    setPopupLocation(null)
-
+  // Sincronizar marcadores del mapa cuando cambia la lista de tiendas
+  useEffect(() => {
     if (!mapInstanceRef.current) return
+    const map = mapInstanceRef.current
 
-    const id = `store-${Date.now()}`
+    stores.forEach((store) => {
+      if (!leafletMarkersRef.current.has(store.id)) {
+        addStoreMarkerToMap(store, map)
+      } else {
+        const marker = leafletMarkersRef.current.get(store.id)
+        if (marker) {
+          marker.setTooltipContent(createTooltipHTML(store))
+        }
+      }
+    })
+  }, [stores, addStoreMarkerToMap])
 
-    // Usar los colores y postres configurados en la terminal
-    const color1 = formData.color1 || DEFAULT_COLOR1
-    const color2 = formData.color2 || DEFAULT_COLOR2
-    const postres = formData.postres?.length === 3 ? formData.postres : ['A2F4B1', 'C8D3E7', '9B1F6A']
+  // ── Guardar tienda: geocodifica, persiste en PostgreSQL (o fallback local) y actualiza el mapa ────────────
+  const handleSaveStore = useCallback(
+    async (formData: StoreFormData) => {
+      setPopupLocation(null)
 
-    const address = await reverseGeocode(formData.lat, formData.lng)
+      // Usar los colores y postres configurados en la terminal
+      const color1 = formData.color1 || DEFAULT_COLOR1
+      const color2 = formData.color2 || DEFAULT_COLOR2
+      const postres =
+        formData.postres?.length === 3 ? formData.postres : ['A2F4B1', 'C8D3E7', '9B1F6A']
 
-    const newStore: Store = {
-      id,
-      lat: formData.lat,
-      lng: formData.lng,
-      nombre: formData.nombre || "Mi Tienda Boca'o",
-      descripcion: formData.descripcion || 'Una nueva tienda tradicional en Cali',
-      bannerPreview: formData.bannerPreview || '/figma/store_banner_oasis.png',
-      logoPreview: formData.logoPreview,
-      address: address || 'Cali, Valle del Cauca',
-      likes: 0,
-      color1,
-      color2,
-      postres,
-    }
+      const address = await reverseGeocode(formData.lat, formData.lng)
 
-    const updated = addStore(newStore)
-    setStores(updated)
-    addStoreMarkerToMap(newStore, mapInstanceRef.current)
+      const storePayload: Partial<Store> = {
+        lat: formData.lat,
+        lng: formData.lng,
+        nombre: formData.nombre || "Mi Tienda Boca'o",
+        descripcion: formData.descripcion || 'Una nueva tienda tradicional en Cali',
+        bannerPreview: formData.bannerPreview || '/figma/store_banner_oasis.png',
+        logoPreview: formData.logoPreview || null,
+        address: address || 'Cali, Valle del Cauca',
+        likes: 0,
+        color1,
+        color2,
+        postres,
+      }
 
-    // Abre de inmediato el StoreDetail de la recién creada
-    setSelectedStore(newStore)
-    setIsStoreListOpen(false)
-  }, [addStoreMarkerToMap])
+      const saved = await createStoreApi(storePayload)
+      setStores((prev) => [saved, ...prev.filter((s) => s.id !== saved.id)])
+
+      if (mapInstanceRef.current) {
+        addStoreMarkerToMap(saved, mapInstanceRef.current)
+      }
+
+      // Abre de inmediato el StoreDetail de la recién creada
+      setSelectedStore(saved)
+      setIsStoreListOpen(false)
+    },
+    [addStoreMarkerToMap]
+  )
 
   // ── Handlers del mapa ────────────────────────────────────────────────────
 

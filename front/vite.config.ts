@@ -12,10 +12,10 @@ export default defineConfig({
         target: 'http://localhost:3000',
         ws: true,
       },
-      '/points': {
+      '/stores': {
         target: 'http://localhost:3000',
       },
-      '/tasks': {
+      '/uploads': {
         target: 'http://localhost:3000',
       },
     },
