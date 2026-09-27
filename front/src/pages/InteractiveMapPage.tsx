@@ -1,11 +1,25 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
 import MapHeaderBadge from '../components/map/MapHeaderBadge'
 import MapSearchBar from '../components/map/MapSearchBar'
 import MapControls from '../components/map/MapControls'
 import MapInfoBanner from '../components/map/MapInfoBanner'
+import MapFixedStoresBar from '../components/map/MapFixedStoresBar'
+import StoresListModal from '../components/map/StoresListModal'
 import StorePopup, { type StoreFormData } from '../components/map/StorePopup'
 import StoreDetail from '../components/map/StoreDetail'
+import logoResponsive from '../assets/interactive-map/logo_responsive.svg'
+import {
+  type Store,
+  getStoredStores,
+  addStore,
+  toggleLikeStore,
+  sortStoresByLikes,
+  getLikedStoreIds,
+} from '../services/storeService'
+
+// Re-exportar interfaz Store para compatibilidad
+export type { Store }
 
 // ── Interfaces ──────────────────────────────────────────────────────────────
 
@@ -17,25 +31,6 @@ interface InteractiveMapPageProps {
 interface MapClickLocation {
   lat: number
   lng: number
-}
-
-/** Modelo de datos de una tienda ya guardada */
-export interface Store {
-  id: string
-  lat: number
-  lng: number
-  nombre: string
-  descripcion: string
-  bannerPreview: string | null
-  logoPreview: string | null
-  address: string
-  likes: number
-  /** Color primario del pin — también usado para texto/acento (colorTexto de la terminal) */
-  color1: string
-  /** Color secundario del pin — fondo de la tarjeta (colorFondo de la terminal) */
-  color2: string
-  /** Códigos de los 3 postres elegidos en la terminal */
-  postres: string[]
 }
 
 // ── Constantes del mapa ─────────────────────────────────────────────────────
@@ -54,69 +49,46 @@ const CALI_BOUNDS: L.LatLngBoundsLiteral = [
 const DEFAULT_COLOR1 = '#5552F6'
 const DEFAULT_COLOR2 = '#D600C4'
 
-// ── Tiendas Iniciales Fieles a Figma ───────────────────────────────────────
-const INITIAL_STORES: Store[] = [
-  {
-    id: 'oasis-1',
-    lat: 3.3768,
-    lng: -76.5364,
-    nombre: 'Cholados El Oasis',
-    descripcion:
-      'Un increíble lugar para tardear con tu familia, amigos, compañeros o cualquier persona que esté dispuesta a probar los postres más dulces de Cali. Un excelente ambiente con juego, recreaciones y actividades para todos los miembros de la familia.',
-    bannerPreview: '/figma/store_banner_oasis.png',
-    logoPreview: null,
-    address: 'Cra 83c #16-05, El Ingenio',
-    likes: 140,
-    color1: '#5552F6',
-    color2: '#D600C4',
-    postres: ['A2F4B1', 'C8D3E7', '9B1F6A'],
-  },
-  {
-    id: 'caleñita-2',
-    lat: 3.4215,
-    lng: -76.5458,
-    nombre: 'Obleas La Caleñita',
-    descripcion:
-      'Las mejores obleas y postres tradicionales en San Fernando, Cali. Deliciosas capas de arequipe, queso, mermelada y frutas frescas.',
-    bannerPreview: '/figma/4e1306367bc471614c5de034d2b7ba22204b0f0c.png',
-    logoPreview: null,
-    address: 'Cl 5 #46B-58, San Fernando',
-    likes: 130,
-    color1: '#FFB200',
-    color2: '#5552F6',
-    postres: ['A2F4B1', 'C8D3E7', '9B1F6A'],
-  },
-]
-
 // ── Helpers de marker ────────────────────────────────────────────────────────
 
 /**
- * Genera el HTML del ícono SVG del pin en los colores dados.
+ * Genera el HTML del ícono SVG del pin fiel a Figma (#519:169 - Markers / Pinlet Marker with Dot).
+ * El color del pin corresponde al color de fondo que tiene el detalle de la tienda (store.color2).
  */
-function createPinIcon(color1: string, color2: string): L.DivIcon {
+function createPinIcon(pinColor: string): L.DivIcon {
   const svg = `
-    <svg width="34" height="44" viewBox="0 0 32 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M16 0C7.163 0 0 7.163 0 16C0 24.837 16 42 16 42C16 42 32 24.837 32 16C32 7.163 24.837 0 16 0Z"
-        fill="${color1}" />
-      <circle cx="16" cy="16" r="7" fill="${color2}" />
-      <circle cx="16" cy="16" r="4" fill="rgba(255,255,255,0.4)" />
+    <svg width="38" height="51" viewBox="0 0 102 136" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Sombra inferior en el suelo -->
+      <ellipse cx="51" cy="123.25" rx="17" ry="8.5" fill="black" fill-opacity="0.18"/>
+      
+      <!-- Cuerpo del pin con borde blanco sutil y color del detalle de la tienda -->
+      <path d="M51 8.5C74.4721 8.5 93.5 27.5279 93.5 51C93.5 64.9749 86.7539 77.3729 76.3418 85.1191C68.3325 91.1381 56.8906 100.677 54.2773 116.108C54.0026 117.729 52.644 118.987 51 118.987C49.356 118.987 47.9974 117.729 47.7227 116.108C45.1093 100.676 33.6666 91.1381 25.6572 85.1191C15.2455 77.3729 8.5 64.9746 8.5 51C8.5 27.5279 27.5279 8.5 51 8.5Z"
+        fill="${pinColor}"
+        stroke="#FFFFFF"
+        stroke-width="3"
+        stroke-linejoin="round" />
+
+      <!-- Círculo interior translúcido más oscuro que su color de fondo, exactamente como en Figma #519:169 -->
+      <circle cx="51" cy="51" r="17" fill="black" fill-opacity="0.4" />
     </svg>
   `.trim()
 
   return L.divIcon({
-    className: 'custom-store-pin cursor-pointer transform hover:scale-110 transition-transform',
+    className: 'custom-store-pin cursor-pointer transform hover:scale-110 transition-transform duration-200',
     html: svg,
-    iconSize: [34, 44],
-    iconAnchor: [17, 44],
-    tooltipAnchor: [0, -44],
+    iconSize: [38, 51],
+    iconAnchor: [19, 45],
+    tooltipAnchor: [0, -45],
   })
 }
 
 /**
  * Genera el HTML del tooltip (tarjeta que aparece al hacer hover).
- * Diseñado siguiendo el grupo EL-395d0a5d del Figma.
+ * Fondo adaptado al color del pin / fondo del detalle de la tienda.
  */
 function createTooltipHTML(store: Store): string {
+  const pinBg = store.color2 || DEFAULT_COLOR2
+
   const bannerHtml = store.bannerPreview
     ? `<img src="${store.bannerPreview}"
           style="width:111px;height:67px;object-fit:cover;border-radius:8px;flex-shrink:0;" />`
@@ -133,7 +105,7 @@ function createTooltipHTML(store: Store): string {
       display:flex;
       align-items:center;
       gap:10px;
-      background:${store.color1};
+      background:${pinBg};
       border-radius:14px;
       padding:8px 12px 8px 8px;
       min-width:230px;
@@ -201,54 +173,69 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
   const mapInstanceRef = useRef<L.Map | null>(null)
   const leafletMarkersRef = useRef<Map<string, L.Marker>>(new Map())
 
-  const [stores, setStores] = useState<Store[]>(INITIAL_STORES)
+  // Lista de tiendas cargadas desde el servicio de almacenamiento
+  const [stores, setStores] = useState<Store[]>(() => getStoredStores())
   const [canZoomIn, setCanZoomIn] = useState<boolean>(true)
   const [canZoomOut, setCanZoomOut] = useState<boolean>(true)
   const [popupLocation, setPopupLocation] = useState<MapClickLocation | null>(null)
   const [selectedStore, setSelectedStore] = useState<Store | null>(null)
-  const [showStoreList, setShowStoreList] = useState<boolean>(false)
-  const [likedStoreIds, setLikedStoreIds] = useState<Set<string>>(new Set())
+  const [isStoreListOpen, setIsStoreListOpen] = useState<boolean>(false)
+  const [likedStoreIds, setLikedStoreIds] = useState<Set<string>>(() => getLikedStoreIds())
+
+  const [searchQuery, setSearchQuery] = useState<string>('')
+
+  // Tiendas filtradas en tiempo real por búsqueda y ordenadas por likes descendente
+  const filteredStores = useMemo(() => {
+    const query = searchQuery.toLowerCase().trim()
+    const list = query
+      ? stores.filter(
+          (s) =>
+            s.nombre.toLowerCase().includes(query) ||
+            s.address.toLowerCase().includes(query)
+        )
+      : stores
+
+    return sortStoresByLikes(list)
+  }, [stores, searchQuery])
+
+  // Indicador si hay un pop up lateral de alguna card flotante activo (lista de tiendas o detalle de tienda)
+  const hasLateralPopup = Boolean(isStoreListOpen || selectedStore)
 
   // Handler para dar o quitar Like a una tienda (+1 o -1)
   const handleToggleLike = useCallback((storeId: string) => {
-    setLikedStoreIds((prevLiked) => {
-      const nextLiked = new Set(prevLiked)
-      const isCurrentlyLiked = nextLiked.has(storeId)
+    const result = toggleLikeStore(storeId)
+    setStores(result.stores)
+    setLikedStoreIds(getLikedStoreIds())
 
-      if (isCurrentlyLiked) {
-        nextLiked.delete(storeId)
-      } else {
-        nextLiked.add(storeId)
+    if (result.updatedStore) {
+      // Actualizar tooltip en el mapa de Leaflet
+      const marker = leafletMarkersRef.current.get(storeId)
+      if (marker) {
+        marker.setTooltipContent(createTooltipHTML(result.updatedStore))
       }
 
-      setStores((prevStores) =>
-        prevStores.map((s) => {
-          if (s.id === storeId) {
-            const newLikes = isCurrentlyLiked ? Math.max(0, s.likes - 1) : s.likes + 1
-            const updatedStore = { ...s, likes: newLikes }
-
-            // Actualizar tooltip en el mapa de Leaflet
-            const marker = leafletMarkersRef.current.get(storeId)
-            if (marker) {
-              marker.setTooltipContent(createTooltipHTML(updatedStore))
-            }
-
-            if (selectedStore?.id === storeId) {
-              setSelectedStore(updatedStore)
-            }
-            return updatedStore
-          }
-          return s
-        })
-      )
-
-      return nextLiked
-    })
+      if (selectedStore?.id === storeId) {
+        setSelectedStore(result.updatedStore)
+      }
+    }
   }, [selectedStore])
+
+  // Handler para seleccionar una tienda desde cualquier card (centra el mapa y abre el detalle)
+  const handleSelectStore = useCallback((store: Store) => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo([store.lat, store.lng], 15, { duration: 1.2 })
+    }
+    setSelectedStore(store)
+    setIsStoreListOpen(false)
+  }, [])
 
   // Función para agregar marker de una tienda al mapa
   const addStoreMarkerToMap = useCallback((store: Store, map: L.Map) => {
-    const icon = createPinIcon(store.color1, store.color2)
+    // Si ya existe el marker, no duplicarlo
+    if (leafletMarkersRef.current.has(store.id)) return
+
+    // El color del pin corresponde al fondo del detalle de la tienda (store.color2)
+    const icon = createPinIcon(store.color2 || DEFAULT_COLOR2)
     const marker = L.marker([store.lat, store.lng], { icon })
 
     marker.bindTooltip(createTooltipHTML(store), {
@@ -259,9 +246,11 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
       opacity: 1,
     })
 
-    // Al hacer click en el marker se abre StoreDetail
-    marker.on('click', () => {
+    // Al hacer click en el marker se abre StoreDetail (deteniendo propagación al mapa)
+    marker.on('click', (e) => {
+      L.DomEvent.stopPropagation(e)
       setSelectedStore(store)
+      setIsStoreListOpen(false)
     })
 
     marker.addTo(map)
@@ -300,11 +289,14 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
     map.on('zoomend', handleZoomEnd)
     handleZoomEnd()
 
-    // Abrir el popup de crear tienda al hacer doble click en el mapa
-    const handleMapDblClick = (e: L.LeafletMouseEvent) => {
+    // Abrir el popup de crear tienda al hacer click en cualquier lugar del mapa
+    // para captar exactamente las coordenadas que el usuario seleccionó
+    const handleMapClick = (e: L.LeafletMouseEvent) => {
+      setIsStoreListOpen(false)
+      setSelectedStore(null)
       setPopupLocation({ lat: e.latlng.lat, lng: e.latlng.lng })
     }
-    map.on('dblclick', handleMapDblClick)
+    map.on('click', handleMapClick)
 
     mapInstanceRef.current = map
 
@@ -318,13 +310,14 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
     return () => {
       clearTimeout(timer)
       map.off('zoomend', handleZoomEnd)
-      map.off('dblclick', handleMapDblClick)
+      map.off('click', handleMapClick)
       map.remove()
       mapInstanceRef.current = null
+      leafletMarkersRef.current.clear()
     }
   }, [addStoreMarkerToMap, stores])
 
-  // ── Guardar tienda: geocodifica, crea marker y lo añade al mapa ────────────
+  // ── Guardar tienda: geocodifica, crea marker y lo añade al mapa y a la base local ────────────
 
   const handleSaveStore = useCallback(async (formData: StoreFormData) => {
     setPopupLocation(null)
@@ -355,11 +348,13 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
       postres,
     }
 
-    setStores((prev) => [...prev, newStore])
+    const updated = addStore(newStore)
+    setStores(updated)
     addStoreMarkerToMap(newStore, mapInstanceRef.current)
 
-    // Abre de inmediato el StoreDetail de la recién creada (con 0 likes)
+    // Abre de inmediato el StoreDetail de la recién creada
     setSelectedStore(newStore)
+    setIsStoreListOpen(false)
   }, [addStoreMarkerToMap])
 
   // ── Handlers del mapa ────────────────────────────────────────────────────
@@ -379,28 +374,7 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
   }
 
   const handleSearch = (query: string) => {
-    const term = query.toLowerCase().trim()
-    if (!term) return
-
-    const matched = stores.find(
-      (s) => s.nombre.toLowerCase().includes(term) || s.address.toLowerCase().includes(term)
-    )
-
-    if (matched && mapInstanceRef.current) {
-      mapInstanceRef.current.flyTo([matched.lat, matched.lng], 15, { duration: 1.2 })
-      setSelectedStore(matched)
-    }
-  }
-
-  const handleExploreClick = () => {
-    setShowStoreList((prev) => !prev)
-  }
-
-  const handleRegisterClick = () => {
-    if (mapInstanceRef.current) {
-      const center = mapInstanceRef.current.getCenter()
-      setPopupLocation({ lat: center.lat, lng: center.lng })
-    }
+    setSearchQuery(query)
   }
 
   const handleClosePopup = useCallback(() => {
@@ -414,11 +388,43 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
         <div ref={mapContainerRef} className="w-full h-full z-0" />
 
         {/* 1. Header Superior */}
-        <div className="absolute top-4 sm:top-6 md:top-8 left-4 sm:left-6 md:left-8 right-4 sm:right-6 md:right-8 z-[1000] pointer-events-none flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-          <div className="pointer-events-auto shrink-0 flex items-center">
+        <div className="absolute top-4 sm:top-6 md:top-8 left-4 sm:left-6 md:left-8 right-4 sm:right-6 md:right-8 z-[1000] pointer-events-none flex items-center justify-between gap-4">
+          {/* Logo normal a la izquierda cuando NO hay popup lateral (Transición suave y fluida) */}
+          <div
+            className={`pointer-events-auto shrink-0 flex items-center transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] transform ${
+              hasLateralPopup
+                ? 'opacity-0 -translate-x-8 scale-90 pointer-events-none'
+                : 'opacity-100 translate-x-0 scale-100'
+            }`}
+          >
             <MapHeaderBadge onBackToHome={onBackToHome} />
           </div>
-          <div className="pointer-events-auto flex-1 flex justify-end">
+
+          {/* Barra de búsqueda y logo responsive al lado izquierdo de ella cuando SÍ hay popup lateral (Figma #519:194) */}
+          <div className="pointer-events-auto flex items-center justify-end gap-2.5 sm:gap-3.5 w-full md:w-auto">
+            {/* Contenedor animado del logo responsive */}
+            <div
+              className={`transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] transform flex items-center shrink-0 ${
+                hasLateralPopup
+                  ? 'opacity-100 translate-x-0 scale-100 max-w-[80px]'
+                  : 'opacity-0 translate-x-8 scale-75 max-w-0 overflow-hidden pointer-events-none'
+              }`}
+            >
+              <button
+                type="button"
+                onClick={onBackToHome}
+                title="Volver a la página principal"
+                aria-label="Volver a la página principal"
+                className="shrink-0 w-11 h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full transition-transform hover:scale-105 active:scale-95 cursor-pointer focus:outline-none drop-shadow-md"
+              >
+                <img
+                  src={logoResponsive}
+                  alt="Boca'o"
+                  className="w-full h-full object-contain"
+                />
+              </button>
+            </div>
+
             <MapSearchBar onSearch={handleSearch} />
           </div>
         </div>
@@ -433,52 +439,25 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
           />
         </div>
 
-        {/* 3. Tarjetas flotantes de tiendas (Figma Frame Map Page #251:302 & #251:313) */}
-        {showStoreList && (
-          <div className="absolute bottom-28 right-4 sm:right-8 z-[1000] pointer-events-auto flex flex-col sm:flex-row gap-4 max-w-[90vw] overflow-x-auto p-2 bg-white/70 backdrop-blur-md rounded-2xl border border-white/80 shadow-2xl">
-            {stores.map((store) => (
-              <div
-                key={store.id}
-                onClick={() => {
-                  if (mapInstanceRef.current) {
-                    mapInstanceRef.current.flyTo([store.lat, store.lng], 15, { duration: 1 })
-                  }
-                  setSelectedStore(store)
-                }}
-                className="w-[280px] sm:w-[312px] bg-white rounded-[16px] p-3 shadow-md hover:shadow-xl transition-all cursor-pointer flex gap-3 items-center border border-neutral-100 group"
-              >
-                <img
-                  src={store.bannerPreview || '/figma/store_banner_oasis.png'}
-                  alt={store.nombre}
-                  className="w-[106px] h-[75px] object-cover rounded-[16px] shrink-0 group-hover:scale-105 transition-transform"
-                />
-                <div className="flex flex-col min-w-0 flex-1">
-                  <h4 className="font-semibold text-[16px] text-neutral-900 truncate">
-                    {store.nombre}
-                  </h4>
-                  <p className="text-xs text-neutral-500 truncate mb-1">{store.address}</p>
-                  <div className="flex items-center gap-1 text-[13px] text-neutral-600">
-                    <svg width="14" height="12" viewBox="0 0 12 10" fill="none">
-                      <path
-                        d="M6 9.5C6 9.5 0.5 5.8 0.5 2.8C0.5 1.3 1.7 0.5 3 0.5C4.2 0.5 5.3 1.2 6 2C6.7 1.2 7.8 0.5 9 0.5C10.3 0.5 11.5 1.3 11.5 2.8C11.5 5.8 6 9.5 6 9.5Z"
-                        fill="#534CF4"
-                      />
-                    </svg>
-                    <span>{store.likes} Me Gusta</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        {/* 3. Barra Inferior con Banner Informativo y Cards fijas de tiendas (Figma Frame Map Page #173-130) */}
+        <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-4 sm:left-6 md:left-8 right-4 sm:right-6 md:right-8 z-[1000] pointer-events-none flex flex-col-reverse lg:flex-row items-center lg:items-end justify-between gap-4">
+          <MapInfoBanner />
 
-        {/* 4. Barra Inferior */}
-        <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-4 sm:left-6 md:left-8 right-4 sm:right-6 md:right-8 z-[1000] pointer-events-none flex flex-col-reverse md:flex-row items-center md:items-end justify-between gap-4">
-          <MapInfoBanner
-            onRegisterClick={handleRegisterClick}
-            onExploreClick={handleExploreClick}
+          <MapFixedStoresBar
+            stores={filteredStores}
+            onSelectStore={handleSelectStore}
+            onOpenFullList={() => setIsStoreListOpen(true)}
           />
         </div>
+
+        {/* 4. Lista Completa de Tiendas en Card Flotante Lateral (Figma Frame Stores List #519:167) */}
+        {isStoreListOpen && (
+          <StoresListModal
+            stores={filteredStores}
+            onSelectStore={handleSelectStore}
+            onClose={() => setIsStoreListOpen(false)}
+          />
+        )}
 
         {/* 5. Pop Up "¡Crea tu tienda!" — aparece al hacer doble click o click en registrar */}
         {popupLocation && (
@@ -490,7 +469,7 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
           />
         )}
 
-        {/* 6. Detalle de Tienda — (Figma Frame Store Detail #262:149) */}
+        {/* 6. Detalle de Tienda — Drawer lateral (Figma Frame Store Detail #262:149) */}
         {selectedStore && (
           <StoreDetail
             store={selectedStore}

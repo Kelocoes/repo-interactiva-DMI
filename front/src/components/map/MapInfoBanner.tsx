@@ -1,14 +1,10 @@
 import React from 'react'
 
 interface MapInfoBannerProps {
-  onRegisterClick?: () => void
-  onExploreClick?: () => void
   className?: string
 }
 
 export const MapInfoBanner: React.FC<MapInfoBannerProps> = ({
-  onRegisterClick,
-  onExploreClick,
   className = '',
 }) => {
   return (
@@ -35,25 +31,9 @@ export const MapInfoBanner: React.FC<MapInfoBannerProps> = ({
         </svg>
       </span>
 
-      {/* Banner Text */}
+      {/* Banner Text informativo sin links */}
       <p className="text-xs sm:text-xs md:text-sm font-normal leading-snug">
-        Haz{' '}
-        <button
-          type="button"
-          onClick={onRegisterClick}
-          className="font-semibold underline underline-offset-2 hover:opacity-90 transition-opacity"
-        >
-          click
-        </button>{' '}
-        en el mapa para registrar tu tienda. Toca{' '}
-        <button
-          type="button"
-          onClick={onExploreClick}
-          className="font-semibold underline underline-offset-2 hover:opacity-90 transition-opacity"
-        >
-          Explorar
-        </button>{' '}
-        para ver la lista de tiendas
+        Haz <span className="font-bold">click</span> en el mapa para registrar tu tienda. Toca <span className="font-bold">Explorar</span> para ver la lista de tiendas
       </p>
     </div>
   )
