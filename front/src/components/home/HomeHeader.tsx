@@ -56,15 +56,7 @@ export default function HomeHeader({ onNavigateToMap }: HomeHeaderProps) {
           </a>
         </nav>
 
-        {/* Botón CTA Mapa para acceso rápido */}
-        <div className="hidden md:flex items-center">
-          <button
-            onClick={onNavigateToMap}
-            className="px-5 py-2 bg-[#534cf4] hover:bg-[#433cc7] text-white text-sm lg:text-[15px] font-medium rounded-full shadow-sm hover:shadow-md transition-all active:scale-95"
-          >
-            Abrir Mapa
-          </button>
-        </div>
+
 
         {/* Botón menú móvil */}
         <button
