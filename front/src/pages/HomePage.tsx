@@ -12,7 +12,7 @@ interface HomePageProps {
 
 export default function HomePage({ onOpenMap }: HomePageProps) {
   return (
-    <div className="min-h-screen w-full bg-[#fbfbfb] text-[#171717] flex flex-col font-sans selection:bg-[#534cf4] selection:text-white overflow-x-hidden">
+    <div className="min-h-screen w-full bg-[#fbfbfb] text-[#171717] flex flex-col font-sans selection:bg-[#534cf4] selection:text-white overflow-x-clip">
       {/* 1. Header con Navegación y Logo */}
       <HomeHeader onNavigateToMap={onOpenMap} />
 

@@ -33,8 +33,8 @@ const DESIRED_DESSERTS: DessertItem[] = [
 
 function DessertCard({ dessert }: { dessert: DessertItem }) {
   return (
-    <div className="flex flex-col items-center group cursor-pointer w-full max-w-[362px]">
-      <div className="relative w-full aspect-square rounded-[36px] overflow-hidden bg-slate-100 shadow-md group-hover:shadow-2xl group-hover:-translate-y-2 transition-all duration-300">
+    <div className="flex flex-col items-center group cursor-pointer w-full max-w-[220px] sm:max-w-[230px] md:max-w-[240px]">
+      <div className="relative w-full aspect-square rounded-[28px] overflow-hidden bg-slate-100 shadow-md group-hover:shadow-2xl group-hover:-translate-y-2 transition-all duration-300">
         <img
           src={dessert.image}
           alt={dessert.name}
@@ -45,7 +45,7 @@ function DessertCard({ dessert }: { dessert: DessertItem }) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
         )}
       </div>
-      <p className="mt-6 text-2xl md:text-[30px] font-medium text-black tracking-tight group-hover:text-[#534cf4] transition-colors text-center">
+      <p className="mt-4 text-base sm:text-lg md:text-[20px] font-medium text-black tracking-tight group-hover:text-[#534cf4] transition-colors text-center">
         {dessert.name}
       </p>
     </div>
@@ -54,20 +54,20 @@ function DessertCard({ dessert }: { dessert: DessertItem }) {
 
 export default function DesiredDessertsSection() {
   return (
-    <section id="postres" className="w-full py-20 md:py-28 bg-[#fbfbfb]">
-      <div className="max-w-[1728px] mx-auto px-6 md:px-28">
+    <section id="postres" className="w-full py-16 md:py-48 bg-[#fbfbfb]">
+      <div className="max-w-[1180px] mx-auto px-6 sm:px-10 md:px-14 lg:px-16">
         {/* Cabecera de Sección (Frame 6) */}
-        <div className="flex flex-col items-start gap-2 mb-12 md:mb-16">
-          <h2 className="text-4xl sm:text-5xl md:text-[72px] font-semibold text-[#534cf4] leading-tight tracking-tight">
+        <div className="flex flex-col items-start gap-1.5 mb-10 md:mb-15 -ml-16">
+          <h2 className="text-2xl sm:text-3xl md:text-[40px] font-semibold text-[#534cf4] leading-tight tracking-tight">
             Postres más deseados
           </h2>
-          <p className="text-lg md:text-[24px] text-[#171717] font-normal">
+          <p className="text-sm sm:text-base md:text-[17px] text-[#171717] font-normal">
             Los postres que más le han gustado al público
           </p>
         </div>
 
         {/* Grilla de los 4 postres (Group 68, 67, 66, 65) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-6 justify-items-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 justify-items-center justify-center">
           {DESIRED_DESSERTS.map((dessert) => (
             <DessertCard key={dessert.id} dessert={dessert} />
           ))}
