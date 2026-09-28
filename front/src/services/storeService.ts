@@ -23,8 +23,8 @@ export interface Store {
   postres: string[];
 }
 
-const STORAGE_KEY = 'bocao_stores_v3';
-const LIKED_KEY = 'bocao_liked_store_ids_v3';
+const STORAGE_KEY = 'bocao_stores_v4';
+const LIKED_KEY = 'bocao_liked_store_ids_v4';
 export const API_BASE_URL = (import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000').replace(/\/$/, '');
 
 /**
@@ -135,13 +135,8 @@ export async function fetchStoresApi(search?: string): Promise<Store[]> {
         logoPreview: resolveImageUrl(s.logoPreview),
       }));
 
-      // Preservar cualquier tienda local creada para que jamás se pierda en un refresh
-      const localOnly = getStoredStores().filter(
-        (local) => !normalized.some((remote) => remote.id === local.id)
-      );
-      const combined = [...normalized, ...localOnly];
-      saveStoresToStorage(combined);
-      return combined;
+      saveStoresToStorage(normalized);
+      return normalized;
     }
     return getStoredStores();
   } catch (err) {
