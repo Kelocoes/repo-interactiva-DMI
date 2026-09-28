@@ -19,17 +19,53 @@ function parseConst(name: string, code: string): string | null {
 }
 
 /**
- * Extrae los elementos del arreglo de misPostres del código.
- * Ejemplo: ["A2F4B1", "C8D3E7"] → ['A2F4B1', 'C8D3E7']
+ * Extrae los elementos del arreglo de postres si el usuario ha definido
+ * el arreglo de códigos y ha implementado el ciclo for llamando a agregarPostre(postre).
+ * Ejemplo:
+ *   const misPostres = ["A2F4B1", "E4D812", "7A4E9C"];
+ *   for (const postre of misPostres) {
+ *     agregarPostre(postre);
+ *   }
  */
 function parsePostresArray(code: string): string[] {
-  const re = /const\s+misPostres\s*=\s*\[([^\]]*)\]/i
-  const m = code.match(re)
-  if (!m) return []
-  return m[1]
-    .split(',')
-    .map((s) => s.trim().replace(/["'`]/g, ''))
-    .filter(Boolean)
+  // 1. Buscamos arreglos declarados en el código (misPostres, postres, etc.)
+  const arrayRegex = /(?:const|let|var)\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=\s*\[([^\]]*)\]/gi
+  let match: RegExpExecArray | null
+  const declaredArrays: { name: string; elements: string[] }[] = []
+
+  while ((match = arrayRegex.exec(code)) !== null) {
+    const name = match[1]
+    const elements = match[2]
+      .split(',')
+      .map((s) => s.trim().replace(/["'`]/g, ''))
+      .filter(Boolean)
+    declaredArrays.push({ name, elements })
+  }
+
+  if (declaredArrays.length === 0) return []
+
+  // 2. Verificamos que exista un ciclo for que recorra el arreglo y llame a agregarPostre(variable)
+  for (const { name: arrayName, elements } of declaredArrays) {
+    // Opción A (recomendada para principiantes): for...of
+    // for (const postre of misPostres) { agregarPostre(postre); }
+    const forOfRegex = new RegExp(
+      `for\\s*\\(\\s*(?:const|let|var)?\\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\\s+of\\s+${arrayName}\\s*\\)[\\s\\S]*?(?:tienda\\.)?agregar(?:Postre)?\\s*\\(\\s*\\1\\s*\\)`,
+      'i'
+    )
+
+    // Opción B (for clásico con contador por si algún estudiante lo escribe así):
+    // for (let i = 0; i < 3; i++) { agregarPostre(misPostres[i]); }
+    const classicForRegex = new RegExp(
+      `for\\s*\\(\\s*(?:let|var)?\\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\\s*=[\\s\\S]*?\\)[\\s\\S]*?(?:tienda\\.)?agregar(?:Postre)?\\s*\\(\\s*${arrayName}\\s*\\[\\s*\\1\\s*\\]\\s*\\)`,
+      'i'
+    )
+
+    if (forOfRegex.test(code) || classicForRegex.test(code)) {
+      return elements
+    }
+  }
+
+  return []
 }
 
 /** Valida si un color hex es válido (#RGB o #RRGGBB) */
@@ -68,8 +104,16 @@ interface FormState {
 // ── Componente principal ───────────────────────────────────────────────────
 
 const INITIAL_CODE = (_lat: number, _lng: number) =>
-  `// Boca'o Terminal v1.0
-// Configura los colores y postres de tu tienda con JavaScript`
+  `// Sigue estos 3 pasos para configurar tu tienda:
+
+// Paso 1: Define los colores de tu tienda (colorTexto y colorFondo)
+
+
+// Paso 2: Crea la lista con tus 3 códigos del catálogo (misPostres)
+
+
+// Paso 3: Agrega los postres usando un ciclo for (agregarPostre)
+`
 
 const DEFAULT_COLOR1 = '#5552F6'
 const DEFAULT_COLOR2 = '#FFFFFF'
@@ -264,7 +308,7 @@ const StorePopup: React.FC<StorePopupProps> = ({ lat, lng, onClose, onSave }) =>
             className="shrink-0 px-6 pt-3 pb-1 text-xs leading-5"
             style={{ color: 'rgba(255,255,255,0.55)', fontFamily: "'Exo 2', monospace" }}
           >
-            <span style={{ color: '#FFB200' }}>⚡</span> Edita las constantes de abajo — los cambios se reflejan al instante en la vista previa →
+            Configura los colores y usa el ciclo for para agregar tus postres — los cambios se reflejan al instante
           </div>
 
           <TerminalCodeEditor code={code} onChange={setCode} />
@@ -296,12 +340,10 @@ const StorePopup: React.FC<StorePopupProps> = ({ lat, lng, onClose, onSave }) =>
             <div className="px-12 pt-9 pb-4 shrink-0">
               <div className="flex items-start justify-between mb-1">
                 <h2
-                  className="font-semibold leading-tight transition-colors duration-300 font-telegraf"
+                  className="text-2xl sm:text-3xl md:text-[34px] font-extrabold tracking-tight leading-tight transition-colors duration-300"
                   style={{
-                    fontFamily: "'Telegraf', 'Outfit', 'Syne', sans-serif",
-                    fontSize: 32,
+                    fontFamily: "'Telegraf', 'Outfit', 'Plus Jakarta Sans', sans-serif",
                     color: liveColor1,
-                    opacity: 0.85,
                   }}
                 >
                   ¡Crea tu tienda!
@@ -441,7 +483,7 @@ const StorePopup: React.FC<StorePopupProps> = ({ lat, lng, onClose, onSave }) =>
                   className="text-sm mb-1"
                   style={{ color: 'rgba(0,0,0,0.5)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                 >
-                  Selecciona tus 3 postres en la terminal usando los códigos del catálogo
+                  Selecciona tus 3 postres en la terminal agregándolos con el ciclo for
                 </p>
 
                 {/* Tarjetas de postres (se llenan cuando el código es válido) */}
@@ -765,6 +807,136 @@ const FormField: React.FC<FormFieldProps> = ({
   </div>
 )
 
+// ── Resaltado de sintaxis para la Terminal ────────────────────────────────────
+
+const EDITOR_FONT = 'Consolas, Monaco, "Courier New", Courier, monospace'
+const MAX_LINE_CHARS = 65
+
+const JS_TOKEN_REGEX =
+  /(\/\/[^\n]*|\/\*[\s\S]*?(?:\*\/|$))|("(?:\\[\s\S]|[^"\\\n])*(?:"|$)|'(?:\\[\s\S]|[^'\\\n])*(?:'|$)|`(?:\\[\s\S]|[^`\\])*(?:`|$))|(\b(?:const|let|var|function|return|if|else|for|of|in|while|import|export|from|default|new|async|await|typeof)\b)|(\b(?:true|false|null|undefined|NaN)\b)|(\b\d+(?:\.\d+)?\b)|([a-zA-Z_$][a-zA-Z0-9_$]*)|([=+\-*/%&|^!~<>?:]+|[;,()\[\]{}])|(\s+)|(.)/g
+
+function renderHighlightedCode(code: string): React.ReactNode {
+  if (!code) {
+    return (
+      <span style={{ color: '#94A3B8', fontStyle: 'italic' }}>
+        // Escribe código JavaScript aquí...
+      </span>
+    )
+  }
+
+  const elements: React.ReactNode[] = []
+  JS_TOKEN_REGEX.lastIndex = 0
+  let match: RegExpExecArray | null
+  let idx = 0
+
+  while ((match = JS_TOKEN_REGEX.exec(code)) !== null) {
+    const [_, comment, str, keyword, bool, num, ident, punct, space, other] = match
+    const key = idx++
+
+    if (comment) {
+      // Comentarios: gris pizarra apagado y elegante que combina con el fondo de la terminal
+      elements.push(
+        <span
+          key={key}
+          style={{
+            color: '#94A3B8',
+            fontStyle: 'italic',
+          }}
+        >
+          {comment}
+        </span>
+      )
+    } else if (str) {
+      // Strings (colores hex y códigos de postres): ámbar dorado cálido
+      elements.push(
+        <span
+          key={key}
+          style={{
+            color: '#FFD166',
+          }}
+        >
+          {str}
+        </span>
+      )
+    } else if (keyword) {
+      // Palabras clave (const, let, var...): magenta neón que combina con #D600C4 de la terminal
+      elements.push(
+        <span
+          key={key}
+          style={{
+            color: '#FF70C6',
+          }}
+        >
+          {keyword}
+        </span>
+      )
+    } else if (bool) {
+      // Booleanos y valores especiales: púrpura pastel
+      elements.push(
+        <span
+          key={key}
+          style={{
+            color: '#C084FC',
+          }}
+        >
+          {bool}
+        </span>
+      )
+    } else if (num) {
+      // Números: naranja coral suave
+      elements.push(
+        <span
+          key={key}
+          style={{
+            color: '#FF9E7D',
+          }}
+        >
+          {num}
+        </span>
+      )
+    } else if (ident) {
+      // Variables y texto que escribe el usuario: blanco cómodo y natural de leer/escribir
+      elements.push(
+        <span
+          key={key}
+          style={{
+            color: '#FFFFFF',
+          }}
+        >
+          {ident}
+        </span>
+      )
+    } else if (punct) {
+      // Signos y operadores (=, [, ], ;, ,, :, etc.): cian eléctrico llamativo que destaca
+      elements.push(
+        <span
+          key={key}
+          style={{
+            color: '#00F0FF',
+          }}
+        >
+          {punct}
+        </span>
+      )
+    } else if (space) {
+      elements.push(space)
+    } else if (other) {
+      elements.push(
+        <span key={key} style={{ color: '#FFFFFF' }}>
+          {other}
+        </span>
+      )
+    }
+  }
+
+  // Mantiene la sincronización de la última línea vacía en <pre> al presionar Enter
+  if (code.endsWith('\n')) {
+    elements.push('\u200B')
+  }
+
+  return elements
+}
+
 interface TerminalCodeEditorProps {
   code: string
   onChange: (code: string) => void
@@ -772,20 +944,28 @@ interface TerminalCodeEditorProps {
 
 const TerminalCodeEditor: React.FC<TerminalCodeEditorProps> = ({ code, onChange }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const preRef = useRef<HTMLPreElement>(null)
   const lineNumbersRef = useRef<HTMLDivElement>(null)
 
   const lines = code.split('\n')
 
   const handleScroll = () => {
-    if (textareaRef.current && lineNumbersRef.current) {
-      lineNumbersRef.current.scrollTop = textareaRef.current.scrollTop
+    if (textareaRef.current) {
+      const { scrollTop } = textareaRef.current
+      if (preRef.current) {
+        preRef.current.scrollTop = scrollTop
+      }
+      if (lineNumbersRef.current) {
+        lineNumbersRef.current.scrollTop = scrollTop
+      }
     }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const target = e.currentTarget
+
     if (e.key === 'Tab') {
       e.preventDefault()
-      const target = e.currentTarget
       const start = target.selectionStart
       const end = target.selectionEnd
       const val = target.value
@@ -796,40 +976,157 @@ const TerminalCodeEditor: React.FC<TerminalCodeEditorProps> = ({ code, onChange 
           target.selectionStart = target.selectionEnd = start + 2
         }
       }, 0)
+      return
+    }
+
+    // Limitación de caracteres por línea: si se alcanza el tope, continúa escribiendo en la línea de abajo
+    if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      const start = target.selectionStart
+      const end = target.selectionEnd
+      const val = target.value
+
+      const lineStart = val.lastIndexOf('\n', start - 1) + 1
+      const nextNewline = val.indexOf('\n', start)
+      const lineEnd = nextNewline === -1 ? val.length : nextNewline
+      const currentLineLength = lineEnd - lineStart
+
+      if (currentLineLength >= MAX_LINE_CHARS) {
+        e.preventDefault()
+        const newCode = val.substring(0, start) + '\n' + e.key + val.substring(end)
+        onChange(newCode)
+        setTimeout(() => {
+          if (target) {
+            target.selectionStart = target.selectionEnd = start + 2
+          }
+        }, 0)
+      }
+    }
+  }
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const pastedText = e.clipboardData.getData('text')
+    if (!pastedText) return
+
+    const rawLines = pastedText.split('\n')
+    const needsWrap = rawLines.some((l) => l.length > MAX_LINE_CHARS)
+
+    if (needsWrap) {
+      e.preventDefault()
+      const target = e.currentTarget
+      const start = target.selectionStart
+      const end = target.selectionEnd
+      const val = target.value
+
+      const wrappedLines: string[] = []
+      for (const line of rawLines) {
+        if (line.length <= MAX_LINE_CHARS) {
+          wrappedLines.push(line)
+        } else {
+          let rem = line
+          while (rem.length > MAX_LINE_CHARS) {
+            let splitAt = rem.lastIndexOf(' ', MAX_LINE_CHARS)
+            if (splitAt <= 0 || splitAt < MAX_LINE_CHARS - 15) {
+              splitAt = MAX_LINE_CHARS
+            }
+            wrappedLines.push(rem.substring(0, splitAt))
+            rem = rem.substring(splitAt).trimStart()
+          }
+          if (rem.length > 0) wrappedLines.push(rem)
+        }
+      }
+
+      const replacement = wrappedLines.join('\n')
+      const newCode = val.substring(0, start) + replacement + val.substring(end)
+      onChange(newCode)
+      setTimeout(() => {
+        if (target) {
+          target.selectionStart = target.selectionEnd = start + replacement.length
+        }
+      }, 0)
     }
   }
 
   return (
     <div
       className="flex-1 flex overflow-hidden p-6 gap-3"
-      style={{ fontFamily: "'Exo 2', 'Fira Code', 'Courier New', monospace" }}
+      style={{ fontFamily: EDITOR_FONT }}
     >
       {/* Números de línea sincronizados */}
       <div
         ref={lineNumbersRef}
-        className="select-none text-right overflow-hidden opacity-40 text-white font-mono text-base leading-6 shrink-0"
-        style={{ width: 28, paddingTop: 2 }}
+        className="select-none text-right overflow-hidden shrink-0 font-medium"
+        style={{
+          width: 28,
+          fontFamily: EDITOR_FONT,
+          fontSize: '15px',
+          lineHeight: '24px',
+          letterSpacing: '0px',
+          padding: '2px 0 0 0',
+          margin: 0,
+          color: '#9D99FE',
+        }}
       >
         {lines.map((_, i) => (
           <div key={i}>{i + 1}</div>
         ))}
       </div>
 
-      {/* Área de texto */}
-      <textarea
-        ref={textareaRef}
-        value={code}
-        onChange={(e) => onChange(e.target.value)}
-        onScroll={handleScroll}
-        onKeyDown={handleKeyDown}
-        spellCheck={false}
-        autoCapitalize="off"
-        autoComplete="off"
-        autoCorrect="off"
-        className="flex-1 bg-transparent text-white font-mono text-base leading-6 outline-none resize-none custom-popup-scroll border-none p-0 m-0"
-        style={{ caretColor: '#FFB200', whiteSpace: 'pre', tabSize: 2 }}
-        placeholder="// Escribe código JavaScript aquí..."
-      />
+      {/* Contenedor del editor sin deslizador lateral */}
+      <div className="relative flex-1 h-full overflow-hidden">
+        {/* Capa inferior de renderizado con colores por tipo de elemento */}
+        <pre
+          ref={preRef}
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none p-0 m-0 select-none border-none"
+          style={{
+            fontFamily: EDITOR_FONT,
+            fontSize: '15px',
+            lineHeight: '24px',
+            letterSpacing: '0px',
+            fontVariantLigatures: 'none',
+            whiteSpace: 'pre',
+            tabSize: 2,
+            boxSizing: 'border-box',
+            padding: '2px 0 0 0',
+            margin: 0,
+            overflowX: 'hidden',
+            overflowY: 'hidden',
+          }}
+        >
+          <code>{renderHighlightedCode(code)}</code>
+        </pre>
+
+        {/* Textarea interactiva transparente alineada exactamente con la capa pre */}
+        <textarea
+          ref={textareaRef}
+          value={code}
+          onChange={(e) => onChange(e.target.value)}
+          onScroll={handleScroll}
+          onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
+          spellCheck={false}
+          autoCapitalize="off"
+          autoComplete="off"
+          autoCorrect="off"
+          className="absolute inset-0 w-full h-full bg-transparent outline-none resize-none custom-popup-scroll border-none p-0 m-0 selection:bg-white/20 selection:text-transparent"
+          style={{
+            fontFamily: EDITOR_FONT,
+            fontSize: '15px',
+            lineHeight: '24px',
+            letterSpacing: '0px',
+            fontVariantLigatures: 'none',
+            color: 'transparent',
+            caretColor: '#FFB200',
+            whiteSpace: 'pre',
+            tabSize: 2,
+            boxSizing: 'border-box',
+            padding: '2px 0 0 0',
+            margin: 0,
+            overflowX: 'hidden',
+            overflowY: 'auto',
+          }}
+        />
+      </div>
     </div>
   )
 }
