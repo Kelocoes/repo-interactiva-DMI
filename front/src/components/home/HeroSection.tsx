@@ -32,7 +32,9 @@ export default function HeroSection({ onOpenMap }: HeroSectionProps) {
         {/* BOTONES */}
         <div className="relative z-20 mt-[48px] flex items-center justify-center gap-[12px]">
           <a
-            href="#postres"
+            href="https://www.behance.net/gallery/234973823/Bocao-App-Design"
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex h-[38px] w-[145px] items-center justify-center rounded-full border border-[#534cf4] text-[14px] font-medium text-[#534cf4] transition hover:bg-[#534cf4]/5"
           >
             Conocer Más
