@@ -15,6 +15,7 @@ import StoresListModal from '../components/map/StoresListModal'
 import StorePopup, { type StoreFormData } from '../components/map/StorePopup'
 import StoreDetail from '../components/map/StoreDetail'
 import logoResponsive from '../assets/interactive-map/logo_responsive.svg'
+import { assetUrl } from '../utils/assets'
 import {
   type Store,
   getStoredStores,
@@ -539,7 +540,7 @@ export const InteractiveMapPage: React.FC<InteractiveMapPageProps> = ({ onBackTo
         lng: formData.lng,
         nombre: formData.nombre || "Mi Tienda Boca'o",
         descripcion: formData.descripcion || 'Una nueva tienda tradicional en Cali',
-        bannerPreview: formData.bannerPreview || '/figma/store_banner_oasis.png',
+        bannerPreview: formData.bannerPreview || assetUrl('/figma/store_banner_oasis.png'),
         logoPreview: formData.logoPreview || null,
         address: address || 'Cali, Valle del Cauca',
         likes: 0,

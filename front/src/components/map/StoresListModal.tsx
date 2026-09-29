@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import type { Store } from '../../services/storeService'
 import btnPlus from '../../assets/interactive-map/btn_plus.svg'
+import { assetUrl } from '../../utils/assets'
 
 interface StoresListModalProps {
   stores: Store[]
@@ -70,7 +71,7 @@ export const StoresListModal: React.FC<StoresListModalProps> = ({
               {/* Imagen Miniatura */}
               <div className="w-[106px] h-[75px] rounded-[16.7px] overflow-hidden shrink-0 bg-neutral-200">
                 <img
-                  src={store.bannerPreview || '/figma/store_banner_oasis.png'}
+                  src={store.bannerPreview || assetUrl('/figma/store_banner_oasis.png')}
                   alt={store.nombre}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />

@@ -1,6 +1,7 @@
 import React from 'react'
 import type { Store } from '../../services/storeService'
 import { Store as StoreIcon } from 'lucide-react'
+import { assetUrl } from '../../utils/assets'
 
 interface MapFixedStoresBarProps {
   /** Tiendas ordenadas por likes descendente */
@@ -36,7 +37,7 @@ export const MapFixedStoresBar: React.FC<MapFixedStoresBarProps> = ({
               {/* Imagen miniatura */}
               <div className="w-[106px] h-[75px] rounded-[16.7px] overflow-hidden shrink-0 bg-neutral-200">
                 <img
-                  src={store.bannerPreview || '/figma/store_banner_oasis.png'}
+                  src={store.bannerPreview || assetUrl('/figma/store_banner_oasis.png')}
                   alt={store.nombre}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />

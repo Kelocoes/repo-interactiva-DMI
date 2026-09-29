@@ -1,6 +1,7 @@
 import React from 'react'
 import type { Store } from '../../pages/InteractiveMapPage'
 import { POSTRE_CATALOG } from '../../constants/postresCatalog'
+import { assetUrl } from '../../utils/assets'
 
 interface StoreDetailProps {
   store: Store
@@ -62,7 +63,7 @@ export const StoreDetail: React.FC<StoreDetailProps> = ({
           {/* 1. Header Banner Image */}
           <div className="relative w-full h-[180px] sm:h-[210px] md:h-[230px] bg-neutral-200 overflow-hidden shrink-0">
             <img
-              src={store.bannerPreview || '/figma/store_banner_oasis.png'}
+              src={store.bannerPreview || assetUrl('/figma/store_banner_oasis.png')}
               alt={store.nombre}
               className="w-full h-full object-cover"
             />

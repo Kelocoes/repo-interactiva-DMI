@@ -12,26 +12,24 @@ RUN npm ci
 # Copiar código fuente
 COPY . .
 
-# Argumento de build para configurar la URL del Backend (puerto 8070 en el host)
-ARG VITE_BACKEND_URL=http://localhost:8070
+# Argumento de build para configurar la URL del Backend
+ARG VITE_BACKEND_URL=https://pi2tools.icesi.edu.co/iaslab/dmiapi
 ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
 
 # Compilar la aplicación para producción
 RUN npm run build
 
-# Etapa 2: Servidor web ligero en Node sin requerir Nginx
+# Etapa 2: Servidor web ligero en Node
 FROM node:22-alpine AS runner
 
 WORKDIR /app
 
-# Instalar paquete 'serve' globalmente para servir la SPA
-RUN npm install -g serve
-
-# Copiar la carpeta compilada 'dist'
+# Copiar la carpeta compilada 'dist' y el script de servidor
 COPY --from=builder /app/dist ./dist
+COPY server.mjs ./
 
 # Exponer el puerto configurado
 EXPOSE 3060
 
-# Servir dist en el puerto 3060 en modo Single Page Application (-s)
-CMD ["serve", "-s", "dist", "-l", "3060"]
+# Iniciar el servidor
+CMD ["node", "server.mjs"]

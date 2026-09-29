@@ -1,3 +1,5 @@
+import { assetUrl } from '../../utils/assets'
+
 export default function PromoBannerSection() {
   return (
     <section className="relative w-full py-20 md:py-32 overflow-hidden bg-[#fbfbfb]">
@@ -5,7 +7,7 @@ export default function PromoBannerSection() {
       {/* Onda Vectorial de Fondo (Vector 296 - 197:336) */}
       <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-full max-w-[1920px] flex justify-center pointer-events-none opacity-90 -z-0">
         <img
-          src="/figma/7e164ba8c0c859c2e25680c044e179b53fb2d6e1.svg"
+          src={assetUrl('/figma/7e164ba8c0c859c2e25680c044e179b53fb2d6e1.svg')}
           alt=""
           className="w-full h-auto min-w-[1600px]"
         />
@@ -25,7 +27,7 @@ export default function PromoBannerSection() {
         {/* Imagen Central del Personaje (200:771) */}
         <div className="relative z-10 w-full max-w-[450px] md:max-w-[560px] lg:max-w-[600px] flex justify-center">
           <img
-            src="/figma/3315ad1fb46e5b97cc0470b2e7e7334e4e6d8f44.png"
+            src={assetUrl('/figma/3315ad1fb46e5b97cc0470b2e7e7334e4e6d8f44.png')}
             alt="Experiencia Boca'o"
             className="w-full h-auto max-h-[700px] md:max-h-[850px] object-contain drop-shadow-2xl"
           />
@@ -43,7 +45,7 @@ export default function PromoBannerSection() {
         {/* Elemento Decorativo Vectorial (Vector 200:775) */}
         <div className="absolute right-[14%] md:right-[22%] top-[50%] w-52 sm:w-72 md:w-[480px] pointer-events-none">
           <img
-            src="/figma/54b8222684efaceb8dbb0c91c1e4949d032fc22d.svg"
+            src={assetUrl('/figma/54b8222684efaceb8dbb0c91c1e4949d032fc22d.svg')}
             alt=""
             className="w-full h-auto transform -rotate-[35deg]"
           />

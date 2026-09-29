@@ -51,3 +51,4 @@ ngrok/ngrok.exe
 ngrok/*.exe
 ngrok/*.zip
 !ngrok/ngrok.example.yml
+iaslab-dmi.zip

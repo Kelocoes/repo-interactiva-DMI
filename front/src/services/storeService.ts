@@ -28,7 +28,8 @@ const LIKED_KEY = 'bocao_liked_store_ids_v4';
 const BASE_FRONT = import.meta.env.BASE_URL || '/';
 const formatFrontAsset = (rel: string) => `${BASE_FRONT.replace(/\/$/, '')}/${rel.replace(/^\//, '')}`;
 
-const rawBackendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000/iaslab/dmiapi';
+const defaultBackendUrl = 'https://pi2tools.icesi.edu.co/iaslab/dmiapi';
+const rawBackendUrl = import.meta.env.VITE_BACKEND_URL || defaultBackendUrl;
 export const API_BASE_URL = rawBackendUrl.replace(/\/$/, '').endsWith('/iaslab/dmiapi')
   ? rawBackendUrl.replace(/\/$/, '')
   : `${rawBackendUrl.replace(/\/$/, '')}/iaslab/dmiapi`;
@@ -72,17 +73,28 @@ export const INITIAL_STORES: Store[] = [
 ];
 
 /**
- * Convierte URLs de subidas a rutas relativas para que se sirvan
- * a través del proxy de Vite o reverse proxy (/iaslab/dmiapi/uploads/...)
+ * Convierte URLs de subidas a rutas completas o relativas para que se sirvan
+ * a través de la API o reverse proxy (/iaslab/dmiapi/uploads/...)
  */
 export function resolveImageUrl(url: string | null | undefined): string | null {
   if (!url) return null;
   if (url.includes('/uploads/')) {
-    if (url.includes('/iaslab/dmiapi/uploads/')) {
-      return url.substring(url.indexOf('/iaslab/dmiapi/uploads/'));
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
     }
-    const relativeUpload = url.substring(url.indexOf('/uploads/'));
-    return `/iaslab/dmiapi${relativeUpload}`;
+    const uploadPath = url.includes('/iaslab/dmiapi/uploads/')
+      ? url.substring(url.indexOf('/iaslab/dmiapi/uploads/'))
+      : `/iaslab/dmiapi${url.substring(url.indexOf('/uploads/'))}`;
+
+    if (API_BASE_URL.startsWith('http')) {
+      try {
+        const origin = new URL(API_BASE_URL).origin;
+        return `${origin}${uploadPath}`;
+      } catch {
+        return uploadPath;
+      }
+    }
+    return uploadPath;
   }
   if (url.startsWith('/figma/')) {
     return formatFrontAsset(url);

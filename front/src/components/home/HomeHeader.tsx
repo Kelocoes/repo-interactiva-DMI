@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { assetUrl } from '../../utils/assets'
 
 interface NavItem {
   id: string
@@ -71,7 +72,7 @@ export default function HomeHeader({ onNavigateToMap, activeSection: activeSecti
           className="flex items-center gap-3 shrink-0"
         >
           <img
-            src="/figma/ea58c4e23739e24c7763d46274b1d34f56059793.svg"
+            src={assetUrl('/figma/ea58c4e23739e24c7763d46274b1d34f56059793.svg')}
             alt="Boca'o"
             className="h-8 md:h-[35px] w-auto object-contain"
           />

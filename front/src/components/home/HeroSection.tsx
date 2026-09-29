@@ -1,3 +1,5 @@
+import { assetUrl } from '../../utils/assets'
+
 interface HeroSectionProps {
   onOpenMap: () => void
 }
@@ -21,7 +23,7 @@ export default function HeroSection({ onOpenMap }: HeroSectionProps) {
 
               {/* SUBRAYADO MORADO */}
               <img
-                src="/figma/5026b122900bc1ac0c2a3cb1726f6176d5e6d9d3.svg"
+                src={assetUrl('/figma/5026b122900bc1ac0c2a3cb1726f6176d5e6d9d3.svg')}
                 alt=""
                 className="pointer-events-none absolute left-1/2 top-[92%] w-[115%] -translate-x-1/2"
               />
@@ -53,21 +55,21 @@ export default function HeroSection({ onOpenMap }: HeroSectionProps) {
 
           {/* DECORACIÓN MORADA IZQUIERDA */}
           <img
-            src="/figma/8b4c77cd846abdce0161fb9df37e3fb43fdcd3d5.svg"
+            src={assetUrl('/figma/8b4c77cd846abdce0161fb9df37e3fb43fdcd3d5.svg')}
             alt=""
             className="pointer-events-none absolute left-[2px] top-[150px] z-0 w-[155px]"
           />
 
           {/* ESTRELLA AMARILLA DERECHA */}
           <img
-            src="/figma/f4a59134c767cf4c05a7b98af1b8e703a04932aa.svg"
+            src={assetUrl('/figma/f4a59134c767cf4c05a7b98af1b8e703a04932aa.svg')}
             alt=""
             className="pointer-events-none absolute right-[20px] top-[5px] z-0 w-[205px]"
           />
 
           {/* CELULARES */}
           <img
-            src="/figma/305dee135c530c364d943438f640872189d67e8a.png"
+            src={assetUrl('/figma/305dee135c530c364d943438f640872189d67e8a.png')}
             alt="Boca'o App"
             className="absolute left-1/2 top-[-50px] z-10 w-[1350px] max-w-none -translate-x-1/2 object-contain"
           />

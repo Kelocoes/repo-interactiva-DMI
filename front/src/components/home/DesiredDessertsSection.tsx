@@ -1,3 +1,5 @@
+import { assetUrl } from '../../utils/assets'
+
 interface DessertItem {
   id: string
   name: string
@@ -9,24 +11,24 @@ const DESIRED_DESSERTS: DessertItem[] = [
   {
     id: 'cholado',
     name: 'Cholado',
-    image: '/figma/18714511a4b6ed16c96997a9c8a048cbc5993232.png',
+    image: assetUrl('/figma/18714511a4b6ed16c96997a9c8a048cbc5993232.png'),
   },
   {
     id: 'aborrajado',
     name: 'Aborrajado',
-    image: '/figma/8e9a32ac8405841c6c5fab35297bf652fbcdbef3.png',
+    image: assetUrl('/figma/8e9a32ac8405841c6c5fab35297bf652fbcdbef3.png'),
     hasGradient: true,
   },
   {
     id: 'merengon',
     name: 'Merengón',
-    image: '/figma/0fd44c4b98d30d4a5da945e551b32bed914fcebe.png',
+    image: assetUrl('/figma/0fd44c4b98d30d4a5da945e551b32bed914fcebe.png'),
     hasGradient: true,
   },
   {
     id: 'lulada',
     name: 'Lulada',
-    image: '/figma/e6fb42896433e9286f0abed9abd4d1db53c872f0.png',
+    image: assetUrl('/figma/e6fb42896433e9286f0abed9abd4d1db53c872f0.png'),
     hasGradient: true,
   },
 ]

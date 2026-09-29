@@ -1,3 +1,5 @@
+import { assetUrl } from '../../utils/assets'
+
 interface InteractiveMapSectionProps {
   onOpenMap: () => void
 }
@@ -22,7 +24,7 @@ export default function InteractiveMapSection({ onOpenMap }: InteractiveMapSecti
               {/* Garabato / Underline Doodle fiel a Figma (Line 4) */}
               <div className="w-[190px] sm:w-[220px] md:w-[250px] mt-1.5">
                 <img
-                  src="/figma/85d1485208e4e179073f475b6b292cf476d22e72.svg"
+                  src={assetUrl('/figma/85d1485208e4e179073f475b6b292cf476d22e72.svg')}
                   alt=""
                   className="w-full h-auto"
                 />
@@ -57,21 +59,21 @@ export default function InteractiveMapSection({ onOpenMap }: InteractiveMapSecti
                     className="relative aspect-square rounded-[36px] overflow-hidden bg-[#e8e8e8] shadow-sm hover:shadow-[0_8px_20px_rgba(0,0,0,0.08)] transition-all cursor-pointer group border border-slate-200"
                   >
                     <div className="absolute inset-0 scale-125 transform group-hover:scale-135 transition-transform duration-700">
-                      <img src="/figma/67a6bb81c4a554af3119eb32fbebffe0da284d61.svg" alt="" className="absolute inset-0 w-full h-full object-cover" />
-                      <img src="/figma/4e072500f56ab5055f580074320d2394bfe66028.svg" alt="" className="absolute inset-0 w-full h-full object-cover" />
-                      <img src="/figma/f02e438bb5ab4593c41ec32cd829fd83ffa16c1f.svg" alt="" className="absolute inset-0 w-full h-full object-cover" />
-                      <img src="/figma/dac489a6a79abfe8219f2ffcf27d848c0cc2d187.svg" alt="" className="absolute inset-0 w-full h-full object-cover" />
+                      <img src={assetUrl('/figma/67a6bb81c4a554af3119eb32fbebffe0da284d61.svg')} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                      <img src={assetUrl('/figma/4e072500f56ab5055f580074320d2394bfe66028.svg')} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                      <img src={assetUrl('/figma/f02e438bb5ab4593c41ec32cd829fd83ffa16c1f.svg')} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                      <img src={assetUrl('/figma/dac489a6a79abfe8219f2ffcf27d848c0cc2d187.svg')} alt="" className="absolute inset-0 w-full h-full object-cover" />
                     </div>
                     {/* Pin Marker (195:642) */}
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 drop-shadow-lg group-hover:scale-125 transition-transform">
-                      <img src="/figma/b0d65b391d8866fc39b667cba893ea7b4c71e124.svg" alt="Pin" className="w-10 h-auto" />
+                      <img src={assetUrl('/figma/b0d65b391d8866fc39b667cba893ea7b4c71e124.svg')} alt="Pin" className="w-10 h-auto" />
                     </div>
                   </div>
 
                   {/* Tarjeta Foto Dulce (195:601) */}
                   <div className="relative aspect-square rounded-[36px] overflow-hidden bg-slate-100 shadow-sm hover:shadow-[0_8px_20px_rgba(0,0,0,0.08)] transition-all border border-slate-200 group">
                     <img
-                      src="/figma/4e1306367bc471614c5de034d2b7ba22204b0f0c.png"
+                      src={assetUrl('/figma/4e1306367bc471614c5de034d2b7ba22204b0f0c.png')}
                       alt="Dulce tradicional"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
@@ -81,7 +83,7 @@ export default function InteractiveMapSection({ onOpenMap }: InteractiveMapSecti
                 {/* Fila inferior: Card 3 Foto Ciudad/Calle ancha (195:613) */}
                 <div className="relative h-[220px] md:h-[290px] rounded-[36px] overflow-hidden bg-slate-100 shadow-sm hover:shadow-[0_8px_20px_rgba(0,0,0,0.08)] transition-all border border-slate-200 group">
                   <img
-                    src="/figma/9c57f566b1ecfa519d0baf95252f73f2ff1165d4.png"
+                    src={assetUrl('/figma/9c57f566b1ecfa519d0baf95252f73f2ff1165d4.png')}
                     alt="Calle de Cali"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -99,14 +101,14 @@ export default function InteractiveMapSection({ onOpenMap }: InteractiveMapSecti
                 className="relative rounded-[36px] overflow-hidden bg-[#e8e8e8] shadow-sm hover:shadow-[0_8px_20px_rgba(0,0,0,0.05)]transition-all cursor-pointer group border border-slate-200 min-h-[300px] sm:min-h-full"
               >
                 <div className="absolute inset-0 scale-125 transform group-hover:scale-135 transition-transform duration-700">
-                  <img src="/figma/67a6bb81c4a554af3119eb32fbebffe0da284d61.svg" alt="" className="absolute inset-0 w-full h-full object-cover" />
-                  <img src="/figma/4e072500f56ab5055f580074320d2394bfe66028.svg" alt="" className="absolute inset-0 w-full h-full object-cover" />
-                  <img src="/figma/f02e438bb5ab4593c41ec32cd829fd83ffa16c1f.svg" alt="" className="absolute inset-0 w-full h-full object-cover" />
-                  <img src="/figma/dac489a6a79abfe8219f2ffcf27d848c0cc2d187.svg" alt="" className="absolute inset-0 w-full h-full object-cover" />
+                  <img src={assetUrl('/figma/67a6bb81c4a554af3119eb32fbebffe0da284d61.svg')} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                  <img src={assetUrl('/figma/4e072500f56ab5055f580074320d2394bfe66028.svg')} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                  <img src={assetUrl('/figma/f02e438bb5ab4593c41ec32cd829fd83ffa16c1f.svg')} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                  <img src={assetUrl('/figma/dac489a6a79abfe8219f2ffcf27d848c0cc2d187.svg')} alt="" className="absolute inset-0 w-full h-full object-cover" />
                 </div>
                 {/* Pin Marker (195:652) */}
                 <div className="absolute top-[42%] left-[45%] -translate-x-1/2 -translate-y-1/2 z-10 drop-shadow-lg group-hover:scale-125 transition-transform">
-                  <img src="/figma/9818e3559a00bb8aa7ee6198de27a3f08f5111bf.svg" alt="Pin" className="w-10 h-auto" />
+                  <img src={assetUrl('/figma/9818e3559a00bb8aa7ee6198de27a3f08f5111bf.svg')} alt="Pin" className="w-10 h-auto" />
                 </div>
                 <div className="absolute bottom-6 left-6 right-6 p-4 rounded-2xl bg-white/90 backdrop-blur-md shadow-md text-center">
                   <span className="text-sm font-bold text-[#534cf4]">Explorar en vivo →</span>
