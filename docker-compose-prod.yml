@@ -1,0 +1,31 @@
+services:
+  back:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+    container_name: bocao_back_prod
+    restart: always
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+    ports:
+      - "8070:3000"
+    volumes:
+      - back_uploads:/app/uploads
+
+  front:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+      args:
+        - VITE_BACKEND_URL=http://localhost:8070
+    container_name: bocao_front_prod
+    restart: always
+    ports:
+      - "3060:3060"
+    depends_on:
+      - back
+
+volumes:
+  back_uploads:
+
