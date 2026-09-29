@@ -7,7 +7,13 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['"PP Neue Montreal"', 'sans-serif'],
+        montreal: ['"PP Neue Montreal"', 'sans-serif'],
+        telegraf: ['"PP Neue Montreal"', 'sans-serif'],
+      },
+    },
   },
   plugins: [
     daisyui,

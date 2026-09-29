@@ -44,3 +44,10 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Ngrok local credentials and binaries (do not commit tokens or binaries)
+ngrok/ngrok.yml
+ngrok/ngrok.exe
+ngrok/*.exe
+ngrok/*.zip
+!ngrok/ngrok.example.yml
