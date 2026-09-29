@@ -25,7 +25,13 @@ export interface Store {
 
 const STORAGE_KEY = 'bocao_stores_v4';
 const LIKED_KEY = 'bocao_liked_store_ids_v4';
-export const API_BASE_URL = (import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000').replace(/\/$/, '');
+const BASE_FRONT = import.meta.env.BASE_URL || '/';
+const formatFrontAsset = (rel: string) => `${BASE_FRONT.replace(/\/$/, '')}/${rel.replace(/^\//, '')}`;
+
+const rawBackendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000/iaslab/dmiapi';
+export const API_BASE_URL = rawBackendUrl.replace(/\/$/, '').endsWith('/iaslab/dmiapi')
+  ? rawBackendUrl.replace(/\/$/, '')
+  : `${rawBackendUrl.replace(/\/$/, '')}/iaslab/dmiapi`;
 
 /**
  * Tiendas iniciales del mock fieles a Figma (Frame 173-130).
@@ -40,7 +46,7 @@ export const INITIAL_STORES: Store[] = [
     nombre: 'Obleas la caleñita',
     descripcion:
       'Las mejores obleas y postres tradicionales en San Fernando, Cali. Deliciosas capas de arequipe, queso, mermelada y frutas frescas.',
-    bannerPreview: '/figma/4e1306367bc471614c5de034d2b7ba22204b0f0c.png',
+    bannerPreview: formatFrontAsset('/figma/4e1306367bc471614c5de034d2b7ba22204b0f0c.png'),
     logoPreview: null,
     address: 'Cl 5 #46B-58',
     likes: 130,
@@ -55,7 +61,7 @@ export const INITIAL_STORES: Store[] = [
     nombre: 'El Oasis',
     descripcion:
       'Un increíble lugar para tardear con tu familia, amigos, compañeros o cualquier persona que esté dispuesta a probar los postres más dulces de Cali. Un excelente ambiente con juego, recreaciones y actividades para todos los miembros de la familia.',
-    bannerPreview: '/figma/store_banner_oasis.png',
+    bannerPreview: formatFrontAsset('/figma/store_banner_oasis.png'),
     logoPreview: null,
     address: 'Cra 83c #16-05',
     likes: 100,
@@ -66,13 +72,20 @@ export const INITIAL_STORES: Store[] = [
 ];
 
 /**
- * Convierte URLs de subidas a rutas relativas (/uploads/...) para que se sirvan
- * a través del proxy de Vite en el mismo origen, eliminando bloqueos ORB de Chrome
+ * Convierte URLs de subidas a rutas relativas para que se sirvan
+ * a través del proxy de Vite o reverse proxy (/iaslab/dmiapi/uploads/...)
  */
 export function resolveImageUrl(url: string | null | undefined): string | null {
   if (!url) return null;
   if (url.includes('/uploads/')) {
-    return url.substring(url.indexOf('/uploads/'));
+    if (url.includes('/iaslab/dmiapi/uploads/')) {
+      return url.substring(url.indexOf('/iaslab/dmiapi/uploads/'));
+    }
+    const relativeUpload = url.substring(url.indexOf('/uploads/'));
+    return `/iaslab/dmiapi${relativeUpload}`;
+  }
+  if (url.startsWith('/figma/')) {
+    return formatFrontAsset(url);
   }
   return url;
 }
@@ -286,7 +299,11 @@ export function subscribeToRealtimeStores(
   onStoreLiked: (payload: { id: string; likes: number }) => void,
 ): () => void {
   try {
-    const socket: Socket = io(API_BASE_URL, {
+    const socketUrl = new URL(API_BASE_URL, typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+    const socketPath = `${socketUrl.pathname.replace(/\/$/, '')}/socket.io`;
+
+    const socket: Socket = io(socketUrl.origin, {
+      path: socketPath,
       reconnectionAttempts: 5,
       reconnectionDelay: 2000,
       extraHeaders: {

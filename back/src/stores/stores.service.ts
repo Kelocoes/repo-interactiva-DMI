@@ -115,7 +115,7 @@ export class StoresService implements OnModuleInit {
     const filePath = path.join(this.uploadsDir, filename);
 
     fs.writeFileSync(filePath, buffer);
-    return `/uploads/stores/${filename}`;
+    return `/iaslab/dmiapi/uploads/stores/${filename}`;
   }
 
   /**

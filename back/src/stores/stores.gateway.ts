@@ -8,6 +8,7 @@ import { Server, Socket } from 'socket.io';
 import { StoreEntity } from './entities/store.entity';
 
 @WebSocketGateway({
+  path: '/iaslab/dmiapi/socket.io',
   cors: {
     origin: '*',
   },

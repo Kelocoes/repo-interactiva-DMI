@@ -15,7 +15,14 @@ async function bootstrap() {
     fs.mkdirSync(uploadsPath, { recursive: true });
   }
 
-  // Servir archivos estáticos subidos (/uploads/stores/...)
+  // Servir archivos estáticos subidos (/iaslab/dmiapi/uploads/ y /uploads/)
+  app.useStaticAssets(uploadsPath, {
+    prefix: '/iaslab/dmiapi/uploads/',
+    setHeaders: (res: any) => {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    },
+  });
   app.useStaticAssets(uploadsPath, {
     prefix: '/uploads/',
     setHeaders: (res: any) => {
@@ -23,6 +30,9 @@ async function bootstrap() {
       res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     },
   });
+
+  // Prefijo global de API
+  app.setGlobalPrefix('iaslab/dmiapi');
 
   // Habilitar CORS para permitir peticiones desde Vite u otros clientes
   app.enableCors({
@@ -46,7 +56,7 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port, '0.0.0.0');
-  console.log(`🚀 Servidor backend NestJS corriendo en http://localhost:${port}`);
-  console.log(`📂 Archivos estáticos servidos en http://localhost:${port}/uploads/`);
+  console.log(`🚀 Servidor backend NestJS corriendo en http://localhost:${port}/iaslab/dmiapi`);
+  console.log(`📂 Archivos estáticos servidos en http://localhost:${port}/iaslab/dmiapi/uploads/`);
 }
 bootstrap();
